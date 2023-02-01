@@ -1,7 +1,7 @@
 # proton-toolkit
 
 #### 介绍
-steam社区版兼容层GE-Proton的工具集合软件，提供友好的用户界面
+封装protontricks使用与GE-Proton打exe补丁的工具集合软件，提供友好，汉化的用户界面
 
 #### 软件架构
 软件架构说明
