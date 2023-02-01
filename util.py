@@ -96,7 +96,7 @@ def get_app_template_path():
     relative_template_path = "./templates"
     if WINDOWS_MOCK:
         return relative_template_path
-    home_template_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/cabbage-toolkit/templates"
+    home_template_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/templates"
     if os.path.exists(home_template_path):
         return home_template_path
     return relative_template_path

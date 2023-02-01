@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=cabbage
-Exec=python3 .cabbage_toolkit/program/cabbage-toolkit/main.py
+Name=大白菜工具集
+Exec=python3 /home/deck/.cabbage_toolkit/program/main.py
 Type=Application
 StartupNotify=true
-Icon=.cabbage_toolkit/program/desktop-icon.png
+Icon=/home/deck/.cabbage_toolkit/program/desktop-icon.png
