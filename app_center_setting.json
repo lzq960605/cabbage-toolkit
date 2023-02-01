@@ -1,0 +1,29 @@
+{
+  "setting_version": "1.0.0",
+  "adv": {
+    "author": "大白菜v50",
+    "author_home_page": "https://www.bilibili.com/video/BV17M411B7Ps/",
+    "helper_page": "https://www.bilibili.com/read/cv21084708/"
+  },
+  "necessary_tools": [
+    {
+      "name": "GE-Proton7-30",
+      "key": "GE-Proton7-30",
+      "introduce": "steam GE兼容层工具",
+      "icon": "",
+      "url": "https://www.baidu.com",
+      "install_way": "zip,tar",
+      "install_path": "$HOME/.local/share/Steam/compatibilitytools.d"
+    },
+    {
+      "name": "protontricks",
+      "key": "protontricks",
+      "introduce": "protontricks工具，用于打proton游戏补丁",
+      "icon": "",
+      "url": "https://www.baidu.com",
+      "install_way": "flatpak",
+      "install_path": ""
+    }
+  ],
+  "windows_app": []
+}

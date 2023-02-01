@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="element-ui/css/index.css">
+  <!-- steamdeck scale 1280x800 -->
+  <style type="text/css">
+    .el-header {
+      background-color: #B3C0D1;
+      color: #333;
+      text-align: center;
+      line-height: 60px;
+    }
+    .el-footer {
+      /*background-color: #B3C0D1;*/
+      /*color: #333;*/
+      text-align: right;
+      /*line-height: 12px;*/
+    }
+
+    .el-aside {
+      /*background-color: #D3DCE6;*/
+      color: #333;
+      text-align: center;
+      /*line-height: 580px;*/
+    }
+
+    .el-main {
+      background-color: #E9EEF3;
+      color: #333;
+      text-align: center;
+      max-width: 540px;
+      /*line-height: 160px;*/
+    }
+
+    body > .el-container {
+      margin-bottom: 40px;
+      min-height: 580px;
+    }
+
+    /*.el-container:nth-child(5) .el-aside,*/
+    /*.el-container:nth-child(6) .el-aside {*/
+      /*line-height: 260px;*/
+    /*}*/
+
+    /*.el-container:nth-child(7) .el-aside {*/
+      /*line-height: 320px;*/
+    /*}*/
+
+
+    .text {
+      font-size: 14px;
+    }
+
+    .item {
+      /*margin-bottom: 18px;*/
+
+    }
+
+    .clearfix:before,
+    .clearfix:after {
+      display: table;
+      content: "";
+    }
+    .clearfix:after {
+      clear: both
+    }
+
+    .box-card {
+      max-width: 480px;
+    }
+
+    .el-button {
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="background-color: #E9EEF3">
+
+
+    <el-container>
+      <el-header style="text-align: right; font-size: 12px">
+        <span>请选择:</span>
+        <el-select @change="onChangeWindows" v-model="main_windows" placeholder="请选择">
+          <el-option
+                  v-for="item in options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+          </el-option>
+        </el-select>
+      </el-header>
+      <el-container  v-if="main_windows=='1'">
+        <el-aside width="200px" style="height:580px;width: 220px">
+          <el-menu :default-openeds="['1']">
+            <el-submenu index="1">
+              <template slot="title"><i class="el-icon-arrow-down"></i>Proton游戏列表</template>
+
+              <el-menu-item  v-for="(item,index) in gameList" @click="onClickGameItem(item)" :index="(index+1).toString()" class="text item" style="padding-left: 0px;">
+                {{item.name}}
+              </el-menu-item >
+
+            </el-submenu>
+          </el-menu>
+        </el-aside>
+        <el-main>
+          <div style="text-align: left">
+            <p> {{!currentGame.id ? '未选择游戏':currentGame.name}}</p>
+          </div>
+          <el-divider></el-divider>
+          <el-card class="box-card" style="text-align: left">
+            <div slot="header" class="clearfix">
+              <span>打补丁功能</span>
+              <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
+            </div>
+
+            <el-row>
+              <el-button type="success" plain v-on:click="onRunWindowsApp('exe')">选择exe并运行</el-button>
+              <el-button type="success" plain v-on:click="onRunWindowsApp('bat')">选择bat并运行</el-button>
+            </el-row>
+          </el-card>
+
+          <el-divider></el-divider>
+          <el-card class="box-card" style="text-align: left">
+            <div slot="header" class="clearfix">
+              <span>辅助功能</span>
+              <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
+            </div>
+
+            <el-row>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openTaskMgr')" >打开任务管理器</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openRegedit')" >打开注册表</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openWineCfg')" >打开wine设置</el-button>
+              <el-button type="success" plain @click="onShowStorageChoice('openDiskC_Path')" >打开C盘位置</el-button>
+              <el-button type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
+            </el-row>
+          </el-card>
+
+          <!--<el-divider></el-divider>-->
+          <!--<div style="text-align: left">-->
+            <!--<p>游戏id: {{currentGame.id}}</p>-->
+            <!--<p>C盘位置: Games/xxx.exe</p>-->
+            <!--<p>安装位置: Games/xxx.exe</p>-->
+          <!--</div>-->
+        </el-main>
+
+        <el-aside style="min-width: 320px;padding:20px;background-color: #E9EEF3">
+          <p>游戏信息:</p>
+          <el-divider></el-divider>
+          <div style="text-align: left">
+            <p>游戏id: {{currentGame.id}}</p>
+            <p>游戏类型: {{currentGame.nonSteam ? '非Steam游戏' : 'Steam游戏'}}</p>
+            <p>C盘存储位置: {{currentGame.diskC_Path}}</p>
+            <p>安装位置: </p>
+          </div>
+        </el-aside>
+      </el-container>
+
+      <!-- 兼容层补丁 -->
+      <el-container  v-if="main_windows=='2'">
+        <el-aside width="200px" style="height:580px;width: 220px">
+          <el-menu :default-openeds="['1']">
+
+            <el-submenu index="1">
+              <template slot="title"><i class="el-icon-arrow-down"></i>GE-Proton兼容层列表</template>
+              <el-menu-item  v-for="(item,index) in geProtonList" @click="onClickGeProtonItem(item)" :index="(index+1).toString()" class="text item" style="padding-left: 0px;">
+                {{item.name}}
+              </el-menu-item >
+            </el-submenu>
+
+          </el-menu>
+        </el-aside>
+        <el-main>
+          <div style="text-align: left">
+            <p> {{!currentGeProton.name ? '未选择兼容层':currentGeProton.name}}</p>
+          </div>
+          <el-divider></el-divider>
+          <el-card class="box-card" style="text-align: left">
+            <div slot="header" class="clearfix">
+              <span>多开exe补丁</span>
+              <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
+            </div>
+
+            <el-row>
+              <el-button type="success" plain @click="onGeProtonGeneralFunc('makeGeProtonPatch')">打补丁</el-button>
+              <el-button type="success" plain @click="onGeProtonGeneralFunc('revertGeProtonPatch')">复原补丁</el-button>
+            </el-row>
+          </el-card>
+
+          <el-divider></el-divider>
+          <el-card class="box-card" style="text-align: left">
+            <div slot="header" class="clearfix">
+              <el-select @change="onChangeGeProtonGame"  v-model="geGameOptionValue" placeholder="请选择游戏">
+                <el-option
+                        v-for="item in geGameOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                </el-option>
+              </el-select>
+              <span>游戏开启时同时启动:</span>
+              <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
+            </div>
+            <el-row v-if="geGameOptionValue!=''">
+              <el-button type="success" plain @click="updateGeProtonAttachGame">{{!!geGameOptionConf.WINE_EXTRA_EXE ? '编辑' : '添加'}}附加exe</el-button>
+              <el-button type="success" plain @click="updateGeProtonTaskmgr">{{geGameOptionConf.WINE_TASKMGR == '1' ? '关闭' : '启动'}}任务管理器</el-button>
+            </el-row>
+          </el-card>
+
+        </el-main>
+
+        <el-aside style="min-width: 320px;padding:20px;background-color: #E9EEF3">
+          <p style="text-align: left;font-weight: bolder;">兼容层信息:</p>
+          <el-divider></el-divider>
+          <div style="text-align: left">
+            <p>补丁版本: {{!!currentGeProton.version ? currentGeProton.version : '未打补丁'}}</p>
+            <p>存储位置: {{currentGeProton.path}}</p>
+          </div>
+          <div v-if="geGameOptionValue!=''">
+            <br/>
+            <p style="text-align: left;font-weight: bolder;">游戏设置状态:</p>
+            <el-divider></el-divider>
+            <div style="text-align: left">
+              <p>游戏启动时打开任务管理器: {{geGameOptionConf.WINE_TASKMGR == '1' ? '是' : '否'}}</p>
+              <p>游戏启动时打开以下程序: {{geGameOptionConf.WINE_EXTRA_EXE ? geGameOptionConf.WINE_EXTRA_EXE : ''}}</p>
+            </div>
+          </div>
+        </el-aside>
+      </el-container>
+
+      <el-footer>v1.0.0</el-footer>
+    </el-container>
+
+
+    <!-- 兼容层补丁 -->
+
+
+
+    <el-dialog
+            title="提示"
+            :visible.sync="storageDialogVisible"
+            width="30%">
+      <span>这个游戏是否安装在SD卡上?</span>
+        <span slot="footer" class="dialog-footer">
+        <el-button type="success" plain @click="onConfirmStorageChoice(false)">否</el-button>
+        <el-button type="success" plain type="primary" @click="onConfirmStorageChoice(true)">是</el-button>
+      </span>
+    </el-dialog>
+  </div>
+</body>
+  <script src="axios/axios.min.js"></script>
+  <!-- import Vue before Element -->
+  <script src="vue/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="element-ui/js/index.js"></script>
+
+  <script src="https://unpkg.com/vue-notifyjs/dist/vue-notifyjs.js"></script>
+
+
+  <script>
+    const STEAM_CONST = {
+      "STEAM_COMPAT_TOOL_PATH":".local/share/Steam/compatibilitytools.d",
+      "STEAM_APPMANIFEST_PATH":".local/share/Steam/steamapps",
+      "STEAM_APP_PATH":".local/share/Steam/steamapps/common",
+      "STEAM_APP_COMPAT_PATH":".local/share/Steam/steamapps/compatdata",
+      "STEAM_SDCARD_APP_PATH":"/run/media/mmcblk0p1/steamapps/common",
+      "STEAM_SDCARD_APP_COMPAT_PATH":"/run/media/mmcblk0p1/steamapps/compatdata",
+    };
+
+    function commandRequest(category, command, params) {
+      return axios({
+        method: 'post',
+        url: '/api/cmd',
+        data: {
+          "category": category,
+          "command": command,
+          "params": params
+        }
+      });
+    }
+
+    function apiErrorAndReturn(vue, resp) {
+      if(resp.data.code !==0 || (resp.data.data.hasOwnProperty('cmdCode') && resp.data.data.cmdCode !== 0)){
+        const errMsg = (resp.data.data && resp.data.data.hasOwnProperty('errMsg')) ? resp.data.data.errMsg : resp.data.msg;
+        vue.$message.error(errMsg);
+        return true;
+      }
+      return false;
+    }
+
+    new Vue({
+      el: '#app',
+      data: function() {
+        return {
+          // main_windows: 'GAME_SETTING', // GAME_SETTING, PROTON_PATCH
+
+          visible: false,
+
+          options: [{
+            value: '1',
+            label: '游戏设置'
+          }, {
+            value: '2',
+            label: '打兼容层补丁'
+          }],
+          main_windows: '1',  // 1: GAME_SETTING, 2: PROTON_PATCH
+
+          gameList:[],
+          currentGame: {
+            id:'',
+            name:'',
+          },
+          geProtonList:[],
+          currentGeProton: {
+            name:'',
+            version:'',
+            path:'',
+          },
+
+          storageDialogVisible: false,
+          storageDialogTarget: '', // openDiskC_Path, openGameInstallPath
+
+          geGameOptions: [],
+          geGameOptionValue: '',  // 游戏id
+          geGameOptionConf: {
+            WINE_TASKMGR:'',
+            WINE_EXTRA_EXE:'',
+          },  // 兼容层游戏持久化配置
+        }
+      },
+      methods: {
+
+        onClickGameItem:function (gameItem) {
+          console.log(JSON.stringify(gameItem));
+          this.currentGame = JSON.parse(JSON.stringify(gameItem));
+        },
+        onClickGeProtonItem:function (item) {
+          console.log(JSON.stringify(item));
+          const currentGeProton = JSON.parse(JSON.stringify(item));
+          currentGeProton.path = STEAM_CONST.STEAM_COMPAT_TOOL_PATH + "/" + item.name;
+          this.currentGeProton = currentGeProton;
+          this.onGeProtonVersion();
+
+          this.geGameOptionValue = '';
+        },
+        // 补丁功能
+        onRunWindowsApp:function(appType){
+          if(!this.currentGame.id){
+            this.$message.warning('请先选择游戏');
+            return;
+          }
+          // 先选择exe, 再打开
+          commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            console.log(resp.data.data.result);
+            let path = resp.data.data.result;
+            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
+            if(path){
+              const command = appType === 'exe' ? 'runExe' : 'runBat';
+              commandRequest('GAME_SETTING', command, {
+                targetPath: path,
+                gameId: this.currentGame.id,
+              }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                  return;
+                }
+                this.$message.success('运行成功');
+              }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+              })
+            }
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          });
+        },
+
+        // ------ 辅助功能 ------
+        onHelperGeneralOpen:function(command){
+          if(!this.currentGame.id){
+            this.$message.warning('请先选择游戏');
+            return;
+          }
+          commandRequest('GAME_SETTING', command, {
+            gameId: this.currentGame.id,
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            this.$message.success('运行成功');
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+        onShowStorageChoice(storageDialogTarget){
+          this.storageDialogTarget = storageDialogTarget;
+          this.storageDialogVisible = true;
+        },
+        onConfirmStorageChoice(choice){
+          console.log(`onConfirmStorageChoice:${choice}`);
+          if(this.storageDialogTarget === 'openDiskC_Path'){
+            this.onOpenDiskC_Path(choice ? 'SD_CARD' : 'INTERNAL_STORAGE');
+          }
+          else if(this.storageDialogTarget === 'openGameInstallPath'){
+            this.onOpenGameInstallPath(choice ? 'SD_CARD' : 'INTERNAL_STORAGE');
+          }
+          this.storageDialogVisible = false;
+        },
+        // /run/media/mmcblk0p1/steamapps/compatdata/2426010261/pfx/drive_c
+        onOpenDiskC_Path:function(storage){
+          if(!this.currentGame.id){
+            this.$message.warning('请先选择游戏');
+            return;
+          }
+          commandRequest('GAME_SETTING', 'openDiskC_Path', {
+            gameId: this.currentGame.id,
+            storage:storage,
+            targetPath: storage === 'INTERNAL_STORAGE' ?
+                    `${STEAM_CONST.STEAM_APP_COMPAT_PATH}/${this.currentGame.id}/pfx/drive_c` :
+                    `${STEAM_CONST.STEAM_SDCARD_APP_COMPAT_PATH}/${this.currentGame.id}/pfx/drive_c`
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            this.$message.success('运行成功');
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+        onOpenGameInstallPath:function(storage){
+          if(!this.currentGame.id){
+            this.$message.warning('请先选择游戏');
+            return;
+          }
+          commandRequest('GAME_SETTING', 'openGameInstallPath', {
+            gameId: this.currentGame.id,
+            storage:storage,
+            targetPath: storage === 'INTERNAL_STORAGE' ?
+                    `${STEAM_CONST.STEAM_APP_PATH}` :
+                    `${STEAM_CONST.STEAM_SDCARD_APP_PATH}`
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            this.$message.success('运行成功');
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+
+
+        onGeProtonGeneralFunc:function(command){
+          if(!this.currentGeProton.name){
+            this.$message.warning('请先选择兼容层');
+            return;
+          }
+          commandRequest('PROTON_PATCH', command, {
+            targetProton: this.currentGeProton.name
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            // 最新补丁版本
+            this.onGeProtonVersion();
+            this.$message.success('运行成功');
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+
+        onGeProtonVersion:function(){
+          if(!this.currentGeProton.name){
+            this.$message.warning('请先选择兼容层');
+            return;
+          }
+          commandRequest('PROTON_PATCH', 'geProtonVersion', {
+            targetProton: this.currentGeProton.name
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            console.log(resp.data.data.result);
+            const result = resp.data.data.result.trim();
+            const version =result.indexOf('version:') >= 0 ? result.substring(result.indexOf('version:') + 'version:'.length, result.indexOf(')')) : '';
+            console.log(version);
+            const currentGeProton = JSON.parse(JSON.stringify(this.currentGeProton));
+            currentGeProton.version = version;
+            this.currentGeProton = currentGeProton;
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+
+
+        readGeProtonGameConf:function(){
+          if(!this.currentGeProton.name){
+            this.$message.warning('请先选择兼容层');
+            return;
+          }
+          if(!this.geGameOptionValue){
+            this.$message.warning('请先选择要设置的游戏');
+            return;
+          }
+
+          commandRequest('PROTON_PATCH', 'readGeProtonGameConfToDict', {
+            targetProton: this.currentGeProton.name,
+            gameId: this.geGameOptionValue,
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            console.log(resp.data.data.result);
+            if(!resp.data.data.result){
+              this.geGameOptionConf = {
+                WINE_TASKMGR: '0',
+                WINE_EXTRA_EXE: '',
+              };
+              return;
+            }
+            this.geGameOptionConf = JSON.parse(JSON.stringify(resp.data.data.result))
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+
+        writeGeProtonGameConfContent:function(json){
+          if(!this.currentGeProton.name){
+            this.$message.warning('请先选择兼容层');
+            return;
+          }
+          if(!this.geGameOptionValue){
+            this.$message.warning('请先选择要设置的游戏');
+            return;
+          }
+          const content = Object.entries(json).map(v=>{
+             return `${v[0]}=${v[1]}`;
+          }).sort().join('\n');
+          commandRequest('PROTON_PATCH', 'writeGeProtonGameConf', {
+            targetProton: this.currentGeProton.name,
+            gameId: this.geGameOptionValue,
+            content: content,
+          }).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            console.log(resp.data.data.result);
+            this.$message.success('设置成功');
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          })
+        },
+
+        updateGeProtonGameConf: function(json){
+          for(const v in json){
+            this.geGameOptionConf[v] = json[v];
+          }
+          this.writeGeProtonGameConfContent(this.geGameOptionConf);
+          this.geGameOptionConf = JSON.parse(JSON.stringify(this.geGameOptionConf))
+        },
+
+        updateGeProtonAttachGame: function(){
+          commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
+            if(apiErrorAndReturn(this, resp)){
+              return;
+            }
+            console.log(resp.data.data.result);
+            let path = resp.data.data.result;
+            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
+            // 选择了目录
+            if(path){
+              this.updateGeProtonGameConf({WINE_EXTRA_EXE:path});
+            }
+            // 不选择任何东西, 就清除设置
+            else {
+              this.updateGeProtonGameConf({WINE_EXTRA_EXE:''});
+            }
+          }).catch((e)=>{
+            console.error(e);
+            this.$message.error(e.message);
+          });
+        },
+
+        updateGeProtonTaskmgr: function(){
+            console.log(`udpateGetProton pre:${this.geGameOptionConf['WINE_TASKMGR']}`);
+          // this.geGameOptionConf['WINE_TASKMGR'] = !!this.geGameOptionConf['WINE_TASKMGR'] ? '0' : '1';
+          if(this.geGameOptionConf['WINE_TASKMGR'] == '0'){
+              this.geGameOptionConf['WINE_TASKMGR'] = '1'
+          }
+          else {
+              this.geGameOptionConf['WINE_TASKMGR'] = '0'
+          }
+          console.log(`udpateGetProton after:${this.geGameOptionConf['WINE_TASKMGR']}`);
+          this.updateGeProtonGameConf({WINE_TASKMGR:this.geGameOptionConf['WINE_TASKMGR']});
+        },
+
+        onChangeGeProtonGame:function() {
+          this.readGeProtonGameConf();
+        },
+
+        onChangeWindows:function () {
+          if(this.main_windows === '1'){
+            commandRequest('GAME_SETTING', 'gameList', {}).then((resp)=>{
+              if(apiErrorAndReturn(this, resp)){
+                return;
+              }
+              console.log(resp.data.data.result);
+              const result = resp.data.data.result;
+              const pattg = /.* \([\d]{2,}\)/g;
+              let gameList = result.match(pattg);
+              console.log(gameList);
+              gameList = gameList.map(v=>{
+                const id = v.substring(v.indexOf('(')+1, v.indexOf(')'));
+                return {
+                  id: id,
+                  name: v.substring(0, v.indexOf('(')).replace('Non-Steam shortcut:', ''),
+                  nonSteam: v.indexOf('Non-Steam shortcut') >=0 ? 1 : 0,
+                  diskC_Path: '.local/share/Steam/steamapps/compatdata/' + id + '/pfx/drive_c',
+                }
+              });
+              console.log(gameList);
+              this.gameList = gameList;
+            }).catch((e)=>{
+              console.error(e);
+              this.$message.error(e.message);
+            })
+          }
+          else if(this.main_windows === '2'){
+            this.geGameOptionValue = '';
+            commandRequest('PROTON_PATCH', 'geProtonList', {}).then((resp)=>{
+              if(apiErrorAndReturn(this, resp)){
+                return;
+              }
+              console.log(resp.data.data.result);
+              const result = resp.data.data.result;
+              const pattg = /GE-Proton[\d]+-[\d]+/g;
+              let geProtonList = result.match(pattg);
+              console.log(geProtonList);
+              geProtonList = geProtonList.map(v=>{
+                return {
+                  name: v
+                }
+              });
+              console.log(geProtonList);
+              this.geProtonList = geProtonList;
+
+              this.geGameOptions = this.gameList.map(v=>{
+                return {
+                  value:v.id,
+                  label:`${v.name}(${v.id})`,
+                }
+              })
+            }).catch((e)=>{
+              console.error(e);
+              this.$message.error(e.message);
+            })
+          }
+
+        }
+      },
+
+      mounted: function () {
+        // console.log('mounted')
+        this.onChangeWindows();
+        // 先检查protontricks是否已安装
+        commandRequest('GAME_SETTING', 'checkProtontricksInstalled', {}).then((resp)=>{
+          if(apiErrorAndReturn(this, resp)){
+            return;
+          }
+          console.log(resp.data.data.result);
+          // 再检查是否有更新的app版本
+
+        }).catch((e)=>{
+          console.error(e);
+          this.$message.error(e.message);
+        });
+
+      }
+    })
+  </script>
+</html>
