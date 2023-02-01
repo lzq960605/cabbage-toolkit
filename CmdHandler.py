@@ -217,7 +217,8 @@ class CmdHandler(object):
         dict_data = runShellCommand(RUN_CLONE_NEWEST_CODE_CMDLINE.format(code_target_path))
         if dict_data['cmdCode'] != 0:
             return dict_data
-        origin_program_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/cabbage-toolkit"
+        # origin_program_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/cabbage-toolkit"
+        origin_program_path = get_user_homepath() + "/" + APP_PROGRAM_PATH
         # 先彻底删掉原来的程序
         if os.path.exists(origin_program_path):
             shutil.rmtree(origin_program_path)
