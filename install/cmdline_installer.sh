@@ -10,7 +10,7 @@ main_func(){
   fi
   mkdir -p "${APP_HOME}/program"
   git clone ${APP_CODE_REPOSITORY} "${APP_HOME}/program"
-  cp "${APP_HOME}/program/install/cabbage.desktop" "${HOME}/Desktop/大白菜工具集.desktop"
+  cp -f "${APP_HOME}/program/install/cabbage.desktop" "${HOME}/Desktop/大白菜工具集.desktop"
   echo "install ok!"
 }
 

@@ -1,10 +1,12 @@
+import os
+import platform
 import time
 from threading import Thread
 
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
-from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand
+from util import create_app_default_path, get_app_template_path, get_system_folder_opener
 
 """
 $HOME/.cabbage_toolkit
@@ -29,7 +31,9 @@ def api_cmd():
     category = request.json['category']
     command = request.json['command']
     params = request.json['params']
-    handler = CmdHandler(category, command, params)
+    async_task = request.json['async_task']
+    api_id = request.json['api_id']
+    handler = CmdHandler(category, command, params, async_task, api_id)
     code, msg, data = handler.handle()
     return {"code": code, "msg": msg, "data": data}
 
@@ -47,6 +51,28 @@ def index():
 def shutdown():
     time.sleep(1)
     server.srv.shutdown()
+    plat = platform.system().lower()
+    if plat == 'linux':
+        cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
+        result = os.popen(cmd).read()
+        print("linux kill task result:" + result)
+
+
+def pool_ui_exit():
+    pass
+    # while True:
+    #     if last_timestamp != 0 and (int(str(time.time()).split('.')[0])-10) > last_timestamp:
+    #         shutdown()
+    #         time.sleep(3)
+    #         plat = platform.system().lower()
+    #         if plat == 'linux':
+    #             cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
+    #             result = os.popen(cmd).read()
+    #             print("linux kill task result:" + result)
+    #         break
+    #
+    #     time.sleep(10)
+
 
 @route('/app/exit')
 def app_exit():
@@ -56,18 +82,21 @@ def app_exit():
 
 server = WSGIRefServer(port=1777)
 
+
 def open_browser_with_url():
     time.sleep(1)
     opener = get_system_folder_opener()
     if not opener:
         raise Exception("Couldn't found opener, open url failed!")
-    runShellCommand(opener + " http://localhost:1777")
+    # runShellCommand(opener + " http://localhost:1777")
 
 
 if __name__ == '__main__':
     # main()
     create_app_default_path()
     Thread(target=open_browser_with_url).start()
-    # run(host='localhost', port=1777)
+    # Thread(target=pool_ui_exit).start()
     run(server=server)
     print("cabbage-toolkit exit.")
+
+

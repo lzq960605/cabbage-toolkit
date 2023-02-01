@@ -272,20 +272,22 @@
 
 
 
-    function commandRequest(category, command, params) {
+    function commandRequest(category, command, params, async_task) {
       return axios({
         method: 'post',
         url: '/api/cmd',
         data: {
           "category": category,
           "command": command,
-          "params": params
+          "params": params,
+          "async_task": async_task || 0, // 是否异步任务
+          "api_id": `${new Date().getTime()}`,
         }
       });
     }
 
     function apiErrorAndReturn(vue, resp) {
-      if(resp.data.code !==0 || (resp.data.data.hasOwnProperty('cmdCode') && resp.data.data.cmdCode !== 0)){
+      if(resp.data.code !==0 || (resp.data.data && resp.data.data.hasOwnProperty('cmdCode') && resp.data.data.cmdCode !== 0)){
         const errMsg = (resp.data.data && resp.data.data.hasOwnProperty('errMsg')) ? resp.data.data.errMsg : resp.data.msg;
         vue.$message.error(errMsg);
         return true;
@@ -334,7 +336,27 @@
         }
       },
       methods: {
-
+        onHandlerAsyncTaskError: function(errArrays){
+            const msg = errArrays.filter(v=>{
+                return v.data.cmdCode != '0';
+            }).map(v=>{
+                return JSON.stringify(v.data.result).replace("\"", "");
+            }).join("\n");
+            if(msg.trim().length > 0){
+                this.$message.success(msg);
+            }
+        },
+        lockScreen(waitSecond){
+            const loading = this.$loading({
+                lock: true,
+                text: '处理中',
+                spinner: 'el-icon-loading',
+                background: 'rgba(0, 0, 0, 0.7)'
+            });
+            setTimeout(() => {
+                loading.close();
+            }, waitSecond*1000);
+        },
         onClickGameItem:function (gameItem) {
           console.log(JSON.stringify(gameItem));
           this.currentGame = JSON.parse(JSON.stringify(gameItem));
@@ -418,10 +440,11 @@
             path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
             if(path){
               const command = appType === 'exe' ? 'runExe' : 'runBat';
+              this.lockScreen(4);
               commandRequest('GAME_SETTING', command, {
                 targetPath: path,
                 gameId: this.currentGame.id,
-              }).then((resp)=>{
+              }, 1).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                   return;
                 }
@@ -443,6 +466,7 @@
             this.$message.warning('请先选择游戏');
             return;
           }
+          this.lockScreen(4);
           commandRequest('GAME_SETTING', command, {
             gameId: this.currentGame.id,
           }).then((resp)=>{
@@ -475,6 +499,7 @@
             this.$message.warning('请先选择游戏');
             return;
           }
+          this.lockScreen(2);
           commandRequest('GAME_SETTING', 'openDiskC_Path', {
             gameId: this.currentGame.id,
             storage:storage,
@@ -496,6 +521,7 @@
             this.$message.warning('请先选择游戏');
             return;
           }
+          this.lockScreen(2);
           commandRequest('GAME_SETTING', 'openGameInstallPath', {
             gameId: this.currentGame.id,
             storage:storage,
@@ -752,6 +778,23 @@
           this.$message.error(e.message);
         });
 
+        // 轮询异步任务的请求结果
+        setInterval(()=>{
+            commandRequest('GAME_SETTING', 'fetch_async_task_result', {}).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                console.log(resp.data.data);
+                if(resp.data.data && resp.data.data.length > 0){
+                    this.onHandlerAsyncTaskError(resp.data.data);
+                }
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+
+        }, 30000)
+
       },
       created: function() {
           window.onload = function () {
@@ -761,6 +804,9 @@
                       method: 'get',
                       url: '/app/exit'
                   }).then(resp=>{
+                      this.$alert('程序已关闭', '提示', {
+                          confirmButtonText: '确定',
+                      });
                   });
                   return "Do you really want to close?";
               };

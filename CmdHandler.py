@@ -1,6 +1,8 @@
 import os
 import shutil
 import time
+from queue import Queue
+from threading import Thread
 
 from app_const import PROTONTRICKS_CMD_PREFIX, APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
@@ -28,11 +30,23 @@ RUN_GET_ONLINE_SETTING_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdec
 RUN_CLONE_NEWEST_CODE_CMDLINE = "git clone https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git  {}"
 
 
+async_task_result = Queue()
+
 class CmdHandler(object):
-    def __init__(self, category, command, params):
-        self.category = category  # GAME_SETTING, PROTON_PATCH
+    def __init__(self, category, command, params, async_task, api_id):
+        self.category = category  # GAME_SETTING, PROTON_PATCH=
         self.command = command
         self.params = params
+        self.async_task = async_task  # async task
+        self.api_id = api_id  #
+
+    def _async_task_handler(self):
+        data = getattr(self, self.command)()
+        async_task_result.put({
+            "api_id": self.api_id,
+            "data": data,
+        })
+
 
     def handle(self):
         print('ready to handle: %s, %s' % (self.command, self.params))
@@ -40,7 +54,10 @@ class CmdHandler(object):
         code = 0
         data = None
         try:
-            data = getattr(self, self.command)()
+            if self.async_task == 0:
+                data = getattr(self, self.command)()
+            else:
+                Thread(target=self._async_task_handler).start()
         except Exception as e:
             print('invoke method error:', e)
             errmsg = str(e)
@@ -51,6 +68,13 @@ class CmdHandler(object):
         return code, errmsg, data
 
     # ========= 私有方法 =========
+    def fetch_async_task_result(self):
+        result = []
+        while not async_task_result.empty():
+            result.append(async_task_result.get())
+
+        return result
+
 
     def checkProtontricksInstalled(self):
         return is_protontricks_installed()
@@ -213,7 +237,8 @@ class CmdHandler(object):
     # 升级本地app到最新版本
     def updateAppToNewestVersion(self):
         # clone 最新版本到downloads目录
-        code_target_path = get_user_homepath() + "/" + APP_DOWNLOADS_PATH + "/cabbage-toolkit_" + str(time.time()).replace('.', '')
+        code_target_path = get_user_homepath() + "/" + APP_DOWNLOADS_PATH + "/cabbage-toolkit_" + str(
+            time.time()).replace('.', '')
         dict_data = runShellCommand(RUN_CLONE_NEWEST_CODE_CMDLINE.format(code_target_path))
         if dict_data['cmdCode'] != 0:
             return dict_data
@@ -225,8 +250,6 @@ class CmdHandler(object):
         # 移动并重命名为: cabbage-toolkit
         shutil.move(code_target_path, origin_program_path)
         return dict_data
-
-
 
     # 持久化接口-读取兼容层游戏配置
     def readGeProtonGameConf(self):
