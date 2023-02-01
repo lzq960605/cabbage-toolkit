@@ -1,6 +1,8 @@
-from CmdHandler import CmdHandler
-from bottle import request, response, route, post, run, template, static_file
+import time
+from threading import Thread
 
+from CmdHandler import CmdHandler
+from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
 from util import create_app_default_path, get_app_template_path
 
@@ -14,6 +16,7 @@ $HOME/.cabbage_toolkit
                 `-- windows_app
                     `-- wechat
 """
+
 
 @route('/hello/<name>')
 def hello(name):
@@ -30,17 +33,34 @@ def api_cmd():
     code, msg, data = handler.handle()
     return {"code": code, "msg": msg, "data": data}
 
+
 @route('/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root = get_app_template_path() + '/')
+    return static_file(filepath, root=get_app_template_path() + '/')
+
 
 @route('/')
 def index():
-    return static_file('index.html', root = get_app_template_path() + '/')
+    return static_file('index.html', root=get_app_template_path() + '/')
 
+
+def shutdown():
+    time.sleep(1)
+    server.srv.shutdown()
+
+
+@route('/app/exit')
+def app_exit():
+    Thread(target=shutdown).start()
+    return {"code": 0, "msg": '', "data": None}
+
+
+server = WSGIRefServer(port=1777)
 
 # http://localhost:8080/hello/world
 if __name__ == '__main__':
     # main()
     create_app_default_path()
-    run(host='localhost', port=8080)
+    # run(host='localhost', port=8080)
+    run(server=server)
+    print("cabbage-toolkit exit.")

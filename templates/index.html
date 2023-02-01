@@ -353,10 +353,18 @@
                 // result:{need_update: 1, version: '1.0.0'}
                 console.log(resp.data.data);
                 this.$message.success('升级完成, ');
-                this.$alert(`升级完成，程序将自动关闭，请手动重启启动`, '提示', {
+                this.$alert(`升级完成，程序将自动关闭，请手动启动应用`, '提示', {
                     confirmButtonText: '确定',
                     callback: (action) => {
-                        windows.close();
+                        // 关闭python应用
+                        axios({
+                            method: 'post',
+                            url: '/app/exit',
+                            data: {}
+                        }).then(resp=>{
+                            window.close();
+                        });
+
                     }
                 });
             }).catch((e)=>{
