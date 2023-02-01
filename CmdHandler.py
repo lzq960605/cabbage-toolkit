@@ -4,11 +4,10 @@ import time
 
 from app_const import PROTONTRICKS_CMD_PREFIX, APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
-from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT
+from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
 from steam import STEAM_COMPAT_TOOL_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath
 
-WINDOWS_MOCK = True
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
 # eg: protontricks -c 'wine wineconsole.exe Z:\\\\home\\deck\\your.bat' gameId

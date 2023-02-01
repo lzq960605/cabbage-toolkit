@@ -20,6 +20,7 @@ NOTE: A game must be launched at least once before Protontricks can find the gam
 
 """
 
+WINDOWS_MOCK = True
 
 WINDOWS_MOCK_GE_PROTON_LIST = """
 GE-Proton7-30

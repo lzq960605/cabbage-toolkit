@@ -269,6 +269,9 @@
       "STEAM_SDCARD_APP_COMPAT_PATH":"/run/media/mmcblk0p1/steamapps/compatdata",
     };
 
+
+
+
     function commandRequest(category, command, params) {
       return axios({
         method: 'post',
@@ -358,10 +361,10 @@
                     callback: (action) => {
                         // 关闭python应用
                         axios({
-                            method: 'post',
-                            url: '/app/exit',
-                            data: {}
+                            method: 'get',
+                            url: '/app/exit'
                         }).then(resp=>{
+                            window.location.href="about:blank";
                             window.close();
                         });
 
@@ -749,6 +752,19 @@
           this.$message.error(e.message);
         });
 
+      },
+      created: function() {
+          window.onload = function () {
+              window.onbeforeunload = function () {
+                  // 关闭python应用
+                  axios({
+                      method: 'get',
+                      url: '/app/exit'
+                  }).then(resp=>{
+                  });
+                  return "Do you really want to close?";
+              };
+          }
       }
     })
   </script>

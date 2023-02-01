@@ -3,6 +3,7 @@ import platform
 import subprocess
 
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH
+from dev_mock import WINDOWS_MOCK
 
 
 def get_user_homepath():
@@ -93,6 +94,8 @@ def create_app_default_path():
 
 def get_app_template_path():
     relative_template_path = "./templates"
+    if WINDOWS_MOCK:
+        return relative_template_path
     home_template_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/cabbage-toolkit/templates"
     if os.path.exists(home_template_path):
         return home_template_path
