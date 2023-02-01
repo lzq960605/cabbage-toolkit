@@ -12,6 +12,7 @@ def get_user_homepath():
     elif plat == 'linux':
         return os.environ.get("HOME", "")
 
+
 def byte_decode(byte_str):
     plat = platform.system().lower()
     if plat == 'windows':
@@ -88,3 +89,11 @@ def create_app_default_path():
         os.makedirs(get_user_homepath() + "/" + APP_DOWNLOADS_PATH)
     if not os.path.exists(get_user_homepath() + "/" + APP_WINDOWS_APP_PATH):
         os.makedirs(get_user_homepath() + "/" + APP_WINDOWS_APP_PATH)
+
+
+def get_app_template_path():
+    relative_template_path = "./templates"
+    home_template_path = get_user_homepath() + "/" + APP_PROGRAM_PATH + "/cabbage-toolkit/templates"
+    if os.path.exists(home_template_path):
+        return home_template_path
+    return relative_template_path

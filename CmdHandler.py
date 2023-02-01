@@ -26,7 +26,7 @@ RUN_MAKE_GE_PROTON_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamd
 RUN_MAKE_GE_PROTON_REVERT_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s revert {}"
 RUN_GET_ONLINE_VERSION_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/app_const.py | grep APP_VERSION | awk -F '=' '{print $2}'"
 RUN_GET_ONLINE_SETTING_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/app_center_setting.json"
-RUN_CLONE_NEWEST_CODE_CMDLINE = "git clone https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git -o {}"
+RUN_CLONE_NEWEST_CODE_CMDLINE = "git clone https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git  {}"
 
 
 class CmdHandler(object):
@@ -170,13 +170,13 @@ class CmdHandler(object):
         dict_data = runShellCommand(RUN_GET_ONLINE_VERSION_CMDLINE)
         if dict_data['cmdCode'] == 0:
             online_version = dict_data['result'].replace("\"", "").strip()
-            online_version_number = online_version.split("\.")
-            local_version_number = APP_VERSION.split("\.")
+            online_version_number = online_version.split('.')
+            local_version_number = APP_VERSION.split('.')
             if len(online_version_number) == len(local_version_number) and len(online_version_number) == 3:
-                if 100 * int(online_version_number[2]) + 10 * int(online_version_number[1]) + int(
-                        online_version_number[1]) \
-                        > 100 * int(local_version_number[2]) + 10 * int(local_version_number[1]) + int(
-                    local_version_number[1]):
+                if 100 * int(online_version_number[0]) + 10 * int(online_version_number[1]) + int(
+                        online_version_number[2]) \
+                        > 100 * int(local_version_number[0]) + 10 * int(local_version_number[1]) + int(
+                    local_version_number[2]):
                     dict_data['result'] = {
                         "need_update": 1,
                         "version": online_version
@@ -214,7 +214,7 @@ class CmdHandler(object):
     # 升级本地app到最新版本
     def updateAppToNewestVersion(self):
         # clone 最新版本到downloads目录
-        code_target_path = get_user_homepath() + "/" + APP_DOWNLOADS_PATH + "/cabbage-toolkit_" + time.time()
+        code_target_path = get_user_homepath() + "/" + APP_DOWNLOADS_PATH + "/cabbage-toolkit_" + str(time.time()).replace('.', '')
         dict_data = runShellCommand(RUN_CLONE_NEWEST_CODE_CMDLINE.format(code_target_path))
         if dict_data['cmdCode'] != 0:
             return dict_data

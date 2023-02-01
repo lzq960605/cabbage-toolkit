@@ -2,7 +2,7 @@ from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file
 
 # toolkit数据目录定义
-from util import create_app_default_path
+from util import create_app_default_path, get_app_template_path
 
 """
 $HOME/.cabbage_toolkit
@@ -32,11 +32,11 @@ def api_cmd():
 
 @route('/<filepath:path>')
 def server_static(filepath):
-    return static_file(filepath, root='./templates/')
+    return static_file(filepath, root = get_app_template_path() + '/')
 
 @route('/')
 def index():
-    return static_file('index.html', root='./templates/')
+    return static_file('index.html', root = get_app_template_path() + '/')
 
 
 # http://localhost:8080/hello/world

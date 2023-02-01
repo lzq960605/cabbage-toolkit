@@ -345,12 +345,46 @@
 
           this.geGameOptionValue = '';
         },
+        updateAppToNewestVersion: function(){
+            commandRequest('GAME_SETTING', 'updateAppToNewestVersion', {}).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                // result:{need_update: 1, version: '1.0.0'}
+                console.log(resp.data.data);
+                this.$message.success('升级完成, ');
+                this.$alert(`升级完成，程序将自动关闭，请手动重启启动`, '提示', {
+                    confirmButtonText: '确定',
+                    callback: (action) => {
+                        windows.close();
+                    }
+                });
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+        },
+
         checkAppOnlineVersion: function(){
             commandRequest('GAME_SETTING', 'checkAppOnlineVersion', {}).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
                 }
+                // result:{need_update: 1, version: '1.0.0'}
                 console.log(resp.data.data);
+                if(resp.data.data.result.need_update == 1){
+                    this.$alert(`检测到有新版本:${resp.data.data.result.version}, 是否现在升级?`, '提示', {
+                        cancelButtonText: '取消',
+                        confirmButtonText: '确定',
+                        callback: (action) => {
+                            if (action === 'confirm') {
+                                this.$message.success('准备升级到'+ resp.data.data.result.version);
+                                this.updateAppToNewestVersion();
+                            }
+                        }
+                    });
+                }
+
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);
