@@ -2,11 +2,15 @@ from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file
 
 # toolkit数据目录定义
+from util import create_app_default_path
+
 """
 $HOME/.cabbage_toolkit
                 |-- app.conf  # app 配置
                 |-- ge_proton_conf  # 兼容层游戏配置
                 |   `-- 240.conf   # 以gameId命名
+                `-- program
+                `-- downloads
                 `-- windows_app
                     `-- wechat
 """
@@ -38,4 +42,5 @@ def index():
 # http://localhost:8080/hello/world
 if __name__ == '__main__':
     # main()
+    create_app_default_path()
     run(host='localhost', port=8080)

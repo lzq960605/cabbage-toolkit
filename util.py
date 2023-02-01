@@ -2,6 +2,8 @@ import os
 import platform
 import subprocess
 
+from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH
+
 
 def get_user_homepath():
     plat = platform.system().lower()
@@ -76,3 +78,13 @@ def is_protontricks_installed():
     result = os.popen(cmd).read()
     return result.strip() == "1"
 
+
+def create_app_default_path():
+    if not os.path.exists(get_user_homepath() + "/" + APP_GE_PROTON_CONF_PATH):
+        os.makedirs(get_user_homepath() + "/" + APP_GE_PROTON_CONF_PATH)
+    if not os.path.exists(get_user_homepath() + "/" + APP_PROGRAM_PATH):
+        os.makedirs(get_user_homepath() + "/" + APP_PROGRAM_PATH)
+    if not os.path.exists(get_user_homepath() + "/" + APP_DOWNLOADS_PATH):
+        os.makedirs(get_user_homepath() + "/" + APP_DOWNLOADS_PATH)
+    if not os.path.exists(get_user_homepath() + "/" + APP_WINDOWS_APP_PATH):
+        os.makedirs(get_user_homepath() + "/" + APP_WINDOWS_APP_PATH)

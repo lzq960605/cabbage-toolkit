@@ -345,6 +345,18 @@
 
           this.geGameOptionValue = '';
         },
+        checkAppOnlineVersion: function(){
+            commandRequest('GAME_SETTING', 'checkAppOnlineVersion', {}).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                console.log(resp.data.data);
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+        },
+
         // 补丁功能
         onRunWindowsApp:function(appType){
           if(!this.currentGame.id){
@@ -678,9 +690,18 @@
           if(apiErrorAndReturn(this, resp)){
             return;
           }
-          console.log(resp.data.data.result);
-          // 再检查是否有更新的app版本
-
+          console.log(resp.data.data);
+          if(!resp.data.data){
+              this.$alert('检测到没有安装protontricks, 请在"discover商店"搜索protontricks安装', '提示', {
+                  confirmButtonText: '确定',
+                  callback: action => {
+                      this.checkAppOnlineVersion();
+                  }
+              });
+          }
+          else {
+              this.checkAppOnlineVersion();
+          }
         }).catch((e)=>{
           console.error(e);
           this.$message.error(e.message);
