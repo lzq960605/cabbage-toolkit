@@ -6,7 +6,7 @@ from threading import Thread
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
-from util import create_app_default_path, get_app_template_path, get_system_folder_opener
+from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand
 
 """
 $HOME/.cabbage_toolkit
@@ -88,7 +88,7 @@ def open_browser_with_url():
     opener = get_system_folder_opener()
     if not opener:
         raise Exception("Couldn't found opener, open url failed!")
-    # runShellCommand(opener + " http://localhost:1777")
+    runShellCommand(opener + " http://localhost:1777")
 
 
 if __name__ == '__main__':

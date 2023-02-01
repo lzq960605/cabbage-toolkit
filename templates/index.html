@@ -469,7 +469,7 @@
           this.lockScreen(4);
           commandRequest('GAME_SETTING', command, {
             gameId: this.currentGame.id,
-          }).then((resp)=>{
+          }, 1).then((resp)=>{
             if(apiErrorAndReturn(this, resp)){
               return;
             }
@@ -506,7 +506,7 @@
             targetPath: storage === 'INTERNAL_STORAGE' ?
                     `${STEAM_CONST.STEAM_APP_COMPAT_PATH}/${this.currentGame.id}/pfx/drive_c` :
                     `${STEAM_CONST.STEAM_SDCARD_APP_COMPAT_PATH}/${this.currentGame.id}/pfx/drive_c`
-          }).then((resp)=>{
+          }, 1).then((resp)=>{
             if(apiErrorAndReturn(this, resp)){
               return;
             }
@@ -528,7 +528,7 @@
             targetPath: storage === 'INTERNAL_STORAGE' ?
                     `${STEAM_CONST.STEAM_APP_PATH}` :
                     `${STEAM_CONST.STEAM_SDCARD_APP_PATH}`
-          }).then((resp)=>{
+          }, 1).then((resp)=>{
             if(apiErrorAndReturn(this, resp)){
               return;
             }
