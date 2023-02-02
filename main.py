@@ -1,12 +1,15 @@
 import os
 import platform
 import time
+from queue import Queue, LifoQueue
 from threading import Thread
 
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
 from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand
+
+api_ticket = LifoQueue()
 
 """
 $HOME/.cabbage_toolkit
@@ -27,6 +30,11 @@ def hello(name):
 
 @post('/api/cmd')
 def api_cmd():
+    api_ticket.put({
+        "uri" : request.path,
+        "time" : str(time.time()),
+    })
+    print("/api/cmd, command:" + request.json['command'])
     response.content_type = 'application/json'
     category = request.json['category']
     command = request.json['command']
@@ -49,13 +57,23 @@ def index():
 
 
 def shutdown():
-    time.sleep(1)
-    server.srv.shutdown()
-    plat = platform.system().lower()
-    if plat == 'linux':
-        cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
-        result = os.popen(cmd).read()
-        print("linux kill task result:" + result)
+    time.sleep(10)
+    real_exit = True
+    try:
+        recently_api_ticket = api_ticket.get()
+        print('shutdown:last accept uri=' + recently_api_ticket['uri'])
+        if recently_api_ticket['uri'] != "/app/exit":
+            real_exit = False
+    except Queue.Empty:
+        pass
+    if real_exit:
+        server.srv.shutdown()
+        plat = platform.system().lower()
+        if plat == 'linux':
+            cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
+            result = os.popen(cmd).read()
+            print("linux kill task result:" + result)
+
 
 
 def pool_ui_exit():
@@ -73,9 +91,12 @@ def pool_ui_exit():
     #
     #     time.sleep(10)
 
-
 @route('/app/exit')
 def app_exit():
+    api_ticket.put({
+        "uri" : request.path,
+        "time" : str(time.time()),
+    })
     Thread(target=shutdown).start()
     return {"code": 0, "msg": '', "data": None}
 

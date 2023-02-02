@@ -1,5 +1,7 @@
 
 # for mock some data in windows develop ide
+import platform
+
 WINDOWS_MOCK_GAME_LIST = """
 protontricks (WARNING): Flatpak version is too old (<1.12.1) to support sub-sandboxes. Disabling bwrap. --no-bwrap will be ignored.
 Found the following games:
@@ -20,7 +22,7 @@ NOTE: A game must be launched at least once before Protontricks can find the gam
 
 """
 
-WINDOWS_MOCK = False
+WINDOWS_MOCK = platform.system().lower() == 'windows'
 
 WINDOWS_MOCK_GE_PROTON_LIST = """
 GE-Proton7-30

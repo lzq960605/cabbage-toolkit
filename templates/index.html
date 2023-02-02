@@ -268,9 +268,7 @@
       "STEAM_SDCARD_APP_PATH":"/run/media/mmcblk0p1/steamapps/common",
       "STEAM_SDCARD_APP_COMPAT_PATH":"/run/media/mmcblk0p1/steamapps/compatdata",
     };
-
-
-
+    let fetch_async_task_ticker = null;
 
     function commandRequest(category, command, params, async_task) {
       return axios({
@@ -779,7 +777,7 @@
         });
 
         // 轮询异步任务的请求结果
-        setInterval(()=>{
+          fetch_async_task_ticker = setInterval(()=>{
             commandRequest('GAME_SETTING', 'fetch_async_task_result', {}).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
@@ -799,6 +797,7 @@
       created: function() {
           window.onload = function () {
               window.onbeforeunload = function () {
+                  clearInterval(fetch_async_task_ticker);
                   // 关闭python应用
                   axios({
                       method: 'get',
