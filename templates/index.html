@@ -464,11 +464,11 @@
             }
             console.log(resp.data.data.result);
             let path = resp.data.data.result;
+            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
             if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
-                this.$message.warning('文件路径或文件名不能包含中文或空格!');
-                return;
+              this.$message.warning('文件路径或文件名不能包含中文或空格!');
+              return;
             }
-            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
             if(path){
               const command = appType === 'exe' ? 'runExe' : 'runBat';
               this.lockScreen(4);
@@ -712,22 +712,28 @@
             }
             commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
             if(apiErrorAndReturn(this, resp)){
+             // 不选择任何东西, 就清除设置
+              this.$alert('取消游戏运行时启动附件应用', '是否取消', {
+                confirmButtonText: '确定',
+                callback: (action) => {
+                    if (action === 'confirm') {
+                        this.updateGeProtonGameConf({WINE_EXTRA_EXE:''});
+                        this.$message.success('修改成功');
+                    }
+                }
+              });
               return;
             }
             console.log(resp.data.data.result);
             let path = resp.data.data.result;
+            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
             if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
                 this.$message.warning('文件路径或文件名不能包含中文或空格!');
                 return;
             }
-            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
             // 选择了目录
             if(path){
               this.updateGeProtonGameConf({WINE_EXTRA_EXE:path});
-            }
-            // 不选择任何东西, 就清除设置
-            else {
-              this.updateGeProtonGameConf({WINE_EXTRA_EXE:''});
             }
           }).catch((e)=>{
             console.error(e);
