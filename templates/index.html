@@ -117,8 +117,8 @@
             </div>
 
             <el-row>
-              <el-button type="success" plain @:click="onRunWindowsApp('exe')">选择exe并运行</el-button>
-              <el-button type="success" plain @:click="onRunWindowsApp('bat')">选择bat并运行</el-button>
+              <el-button type="success" plain @click="onRunWindowsApp('exe')">选择exe并运行</el-button>
+              <el-button type="success" plain @click="onRunWindowsApp('bat')">选择bat并运行</el-button>
               <el-button type="success" plain @click="onShowStorageChoice('openDiskC_Path')" >打开C盘位置</el-button>
               <el-button type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
             </el-row>
@@ -464,6 +464,10 @@
             }
             console.log(resp.data.data.result);
             let path = resp.data.data.result;
+            if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
+                this.$message.warning('文件路径或文件名不能包含中文或空格!');
+                return;
+            }
             path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
             if(path){
               const command = appType === 'exe' ? 'runExe' : 'runBat';
@@ -712,6 +716,10 @@
             }
             console.log(resp.data.data.result);
             let path = resp.data.data.result;
+            if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
+                this.$message.warning('文件路径或文件名不能包含中文或空格!');
+                return;
+            }
             path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1].trim() : '';
             // 选择了目录
             if(path){

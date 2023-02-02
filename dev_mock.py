@@ -31,7 +31,7 @@ GE-Proton7-36
 
 WINDOWS_MOCK_FILE_SELECTOR_RESULT = """
 Gtk-Message: 20:04:26.175: GtkDialog mapped without a transient parent. This is discouraged.
-select file:/home/deck/.bashrc
+select file:/home/deck/ab c.exe
 """
 
 WINDOWS_MOCK_PROTON_VERSION = """
