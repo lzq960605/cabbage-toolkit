@@ -5,6 +5,10 @@
     "author_home_page": "https://www.bilibili.com/video/BV17M411B7Ps/",
     "helper_page": "https://www.bilibili.com/read/cv21084708/"
   },
+  "helper_page": {
+    "install_ge_proton": "https://www.bilibili.com/video/BV1Va411d7aS/",
+    "install_protontricks": "https://www.bilibili.com/read/cv21084708/"
+  },
   "necessary_tools": [
     {
       "name": "GE-Proton7-30",

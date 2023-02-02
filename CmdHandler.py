@@ -8,7 +8,8 @@ from app_const import PROTONTRICKS_CMD_PREFIX, APP_GE_PROTON_CONF_PATH, APP_VERS
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
 from steam import STEAM_COMPAT_TOOL_PATH
-from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath
+from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
+    launch_subprocess_cmd
 
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
@@ -20,6 +21,8 @@ RUN_TASKMGR_CMDLINE = " -c 'wine taskmgr.exe' {}"
 RUN_REGEDIT_CMDLINE = " -c 'wine regedit.exe' {}"
 # eg: protontricks -c 'wine winecfg.exe' gameId
 RUN_WINECFG_CMDLINE = " -c 'wine winecfg.exe' {}"
+# eg: protontricks -c 'wine explorer.exe' gameId
+RUN_EXPLORER_CMDLINE = " -c 'wine explorer.exe' {}"
 
 RUN_NATIVE_FILE_SELECTOR = "FILE=`zenity --file-selection --title=\"选择文件\"` && echo \"select file:$FILE\""
 
@@ -147,6 +150,15 @@ class CmdHandler(object):
 
         return dict_data
 
+    def openExplorer(self):
+        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_EXPLORER_CMDLINE.format(self.params['gameId']))
+        if WINDOWS_MOCK:
+            dict_data['cmdCode'] = 0
+
+        return dict_data
+
+
+
     def openDiskC_Path(self):
         opener = get_system_folder_opener()
         if not opener:
@@ -160,6 +172,15 @@ class CmdHandler(object):
             raise Exception("Couldn't found folder opener, open folder failed!")
         dict_data = runShellCommand(opener + " " + self.params['targetPath'])
         return dict_data
+
+    # 打开用户Home目录下的任意目录
+    def openTargetPath(self):
+        opener = get_system_folder_opener()
+        if not opener:
+            raise Exception("Couldn't found folder opener, open folder failed!")
+        dict_data = runShellCommand(opener + " " + self.params['targetPath'])
+        return dict_data
+
 
     # ========= 兼容层功能 =========
     def makeGeProtonPatch(self):
@@ -215,16 +236,22 @@ class CmdHandler(object):
     # 获取app的设置
     def getAppSetting(self):
         # 先获取线上的配置, 覆盖本地的配置
-        dict_data = runShellCommand(RUN_GET_ONLINE_SETTING_CMDLINE)
+        # dict_data = runShellCommand(RUN_GET_ONLINE_SETTING_CMDLINE)
+        msg, errMsg, cmdCode = launch_subprocess_cmd(RUN_GET_ONLINE_SETTING_CMDLINE)
+        dict_data = {
+            "cmdCode": cmdCode,
+            "result": msg.decode('UTF-8'),
+            "errMsg": errMsg.decode('UTF-8')
+        }
         config_file = get_user_homepath() + "/" + APP_HOME_PATH + \
                       "/local_app_center_setting.json"
         if dict_data['cmdCode'] == 0:
-            file = open(config_file, 'w')
+            file = open(config_file, 'w', encoding="utf-8")
             file.write(dict_data['result'])
             file.close()
         # 有可能没开网络, 写一个空文件
         if not os.path.exists(config_file):
-            file = open(config_file, 'w')
+            file = open(config_file, 'w', encoding="utf-8")
             file.write("")
             file.close()
 

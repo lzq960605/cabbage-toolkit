@@ -117,33 +117,31 @@
             </div>
 
             <el-row>
-              <el-button type="success" plain v-on:click="onRunWindowsApp('exe')">选择exe并运行</el-button>
-              <el-button type="success" plain v-on:click="onRunWindowsApp('bat')">选择bat并运行</el-button>
+              <el-button type="success" plain @:click="onRunWindowsApp('exe')">选择exe并运行</el-button>
+              <el-button type="success" plain @:click="onRunWindowsApp('bat')">选择bat并运行</el-button>
+              <el-button type="success" plain @click="onShowStorageChoice('openDiskC_Path')" >打开C盘位置</el-button>
+              <el-button type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
             </el-row>
           </el-card>
 
           <el-divider></el-divider>
           <el-card class="box-card" style="text-align: left">
             <div slot="header" class="clearfix">
-              <span>辅助功能</span>
+              <span>windows功能</span>
               <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
             </div>
-
             <el-row>
-              <el-button type="success" plain @click="onHelperGeneralOpen('openTaskMgr')" >打开任务管理器</el-button>
-              <el-button type="success" plain @click="onHelperGeneralOpen('openRegedit')" >打开注册表</el-button>
-              <el-button type="success" plain @click="onHelperGeneralOpen('openWineCfg')" >打开wine设置</el-button>
-              <el-button type="success" plain @click="onShowStorageChoice('openDiskC_Path')" >打开C盘位置</el-button>
-              <el-button type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openTaskMgr')" >任务管理器</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openRegedit')" >注册表</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openWineCfg')" >wine设置</el-button>
+              <el-button type="success" plain @click="onHelperGeneralOpen('openExplorer')" >浏览文件</el-button>
             </el-row>
           </el-card>
-
-          <!--<el-divider></el-divider>-->
-          <!--<div style="text-align: left">-->
-            <!--<p>游戏id: {{currentGame.id}}</p>-->
-            <!--<p>C盘位置: Games/xxx.exe</p>-->
-            <!--<p>安装位置: Games/xxx.exe</p>-->
-          <!--</div>-->
+          <el-divider></el-divider>
+          <div style="text-align: left;font-size: 10px;color: #777;">
+            <p>Tips:</p>
+            <p>1. 若有游戏没在游戏列表显示, 在steam客户端，点击游戏属性，强制设置GE-Proton兼容层，运行一下</p>
+          </div>
         </el-main>
 
         <el-aside style="min-width: 320px;padding:20px;background-color: #E9EEF3">
@@ -152,8 +150,6 @@
           <div style="text-align: left">
             <p>游戏id: {{currentGame.id}}</p>
             <p>游戏类型: {{currentGame.nonSteam ? '非Steam游戏' : 'Steam游戏'}}</p>
-            <p>C盘存储位置: {{currentGame.diskC_Path}}</p>
-            <p>安装位置: </p>
           </div>
         </el-aside>
       </el-container>
@@ -208,6 +204,12 @@
               <el-button type="success" plain @click="updateGeProtonTaskmgr">{{geGameOptionConf.WINE_TASKMGR == '1' ? '关闭' : '启动'}}任务管理器</el-button>
             </el-row>
           </el-card>
+
+            <el-divider></el-divider>
+            <div style="text-align: left;font-size: 10px;color: #777;">
+                <p>Tips:</p>
+                <p>1. 若有兼容层列表没显示, 请手动下载GE-Proton到.local/share/Steam/compatibilitytools.d下</p>
+            </div>
 
         </el-main>
 
@@ -327,10 +329,23 @@
 
           geGameOptions: [],
           geGameOptionValue: '',  // 游戏id
+          // 兼容层游戏持久化配置
           geGameOptionConf: {
             WINE_TASKMGR:'',
             WINE_EXTRA_EXE:'',
-          },  // 兼容层游戏持久化配置
+          },
+          // 教程配置，优先从云端获取
+          appSetting: {
+              "adv": {
+                  "author": "大白菜v50",
+                  "author_home_page": "https://www.bilibili.com/video/BV17M411B7Ps/",
+                  "helper_page": "https://www.bilibili.com/read/cv21084708/"
+              },
+              "helper_page": {
+                  "install_ge_proton": "https://www.bilibili.com/read/cv21084708/",
+                  "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
+              },
+          }
         }
       },
       methods: {
@@ -355,9 +370,23 @@
                 loading.close();
             }, waitSecond*1000);
         },
+        onGetAppSetting:function () {
+            commandRequest('GAME_SETTING', 'getAppSetting', {}).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                if(resp.data.data.result.length > 0){
+                    this.appSetting = JSON.parse(resp.data.data.result);
+                    console.log('onGetAppSetting' + JSON.stringify(this.appSetting));
+                }
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+        },
         onClickGameItem:function (gameItem) {
-          console.log(JSON.stringify(gameItem));
-          this.currentGame = JSON.parse(JSON.stringify(gameItem));
+            console.log(JSON.stringify(gameItem));
+            this.currentGame = JSON.parse(JSON.stringify(gameItem));
         },
         onClickGeProtonItem:function (item) {
           console.log(JSON.stringify(item));
@@ -536,7 +565,20 @@
             this.$message.error(e.message);
           })
         },
-
+        onOpenTargetPath:function(path){
+          this.lockScreen(2);
+          commandRequest('GAME_SETTING', 'openTargetPath', {
+              targetPath: path
+          }, 1).then((resp)=>{
+              if(apiErrorAndReturn(this, resp)){
+                  return;
+              }
+              this.$message.success('运行成功');
+          }).catch((e)=>{
+              console.error(e);
+              this.$message.error(e.message);
+          })
+        },
 
         onGeProtonGeneralFunc:function(command){
           if(!this.currentGeProton.name){
@@ -652,7 +694,19 @@
         },
 
         updateGeProtonAttachGame: function(){
-          commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
+            if(!this.currentGeProton.name){
+                this.$message.warning('请先选择兼容层');
+                return;
+            }
+            if(!this.currentGeProton.version){
+                this.$message.warning('兼容层未打补丁');
+                return;
+            }
+            if(this.currentGeProton.version === '1.0.0'){
+                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                return;
+            }
+            commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
             if(apiErrorAndReturn(this, resp)){
               return;
             }
@@ -674,8 +728,18 @@
         },
 
         updateGeProtonTaskmgr: function(){
-            console.log(`udpateGetProton pre:${this.geGameOptionConf['WINE_TASKMGR']}`);
-          // this.geGameOptionConf['WINE_TASKMGR'] = !!this.geGameOptionConf['WINE_TASKMGR'] ? '0' : '1';
+            if(!this.currentGeProton.name){
+                this.$message.warning('请先选择兼容层');
+                return;
+            }
+            if(!this.currentGeProton.version){
+                this.$message.warning('兼容层未打补丁');
+                return;
+            }
+            if(this.currentGeProton.version === '1.0.0'){
+                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                return;
+            }
           if(this.geGameOptionConf['WINE_TASKMGR'] == '0'){
               this.geGameOptionConf['WINE_TASKMGR'] = '1'
           }
@@ -699,7 +763,7 @@
               console.log(resp.data.data.result);
               const result = resp.data.data.result;
               const pattg = /.* \([\d]{2,}\)/g;
-              let gameList = result.match(pattg);
+              let gameList = result.match(pattg) || [];
               console.log(gameList);
               gameList = gameList.map(v=>{
                 const id = v.substring(v.indexOf('(')+1, v.indexOf(')'));
@@ -726,7 +790,7 @@
               console.log(resp.data.data.result);
               const result = resp.data.data.result;
               const pattg = /GE-Proton[\d]+-[\d]+/g;
-              let geProtonList = result.match(pattg);
+              let geProtonList = result.match(pattg) || [];
               console.log(geProtonList);
               geProtonList = geProtonList.map(v=>{
                 return {
@@ -741,7 +805,16 @@
                   value:v.id,
                   label:`${v.name}(${v.id})`,
                 }
-              })
+              });
+              if(geProtonList.length === 0){
+                this.$alert('检测到没有安装GE-Proton, 请查看教程手动安装到指定目录', '提示', {
+                    confirmButtonText: '确定',
+                    callback: (action) => {
+                        this.onOpenTargetPath(STEAM_CONST.STEAM_COMPAT_TOOL_PATH);
+                        window.open(this.appSetting.helper_page.install_ge_proton);
+                    }
+                });
+              }
             }).catch((e)=>{
               console.error(e);
               this.$message.error(e.message);
@@ -777,7 +850,7 @@
         });
 
         // 轮询异步任务的请求结果
-          fetch_async_task_ticker = setInterval(()=>{
+        fetch_async_task_ticker = setInterval(()=>{
             commandRequest('GAME_SETTING', 'fetch_async_task_result', {}).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
@@ -791,8 +864,8 @@
                 this.$message.error(e.message);
             });
 
-        }, 30000)
-
+        }, 30000);
+        this.onGetAppSetting();
       },
       created: function() {
           window.onload = function () {
