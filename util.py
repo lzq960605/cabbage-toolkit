@@ -2,7 +2,8 @@ import os
 import platform
 import subprocess
 
-from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH
+from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
+    PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE
 from dev_mock import WINDOWS_MOCK
 
 
@@ -75,8 +76,6 @@ def is_run_on_steamdeck():
 
 def is_protontricks_installed():
     cmd = "flatpak list | grep protontricks | wc -l"
-    if False:
-        cmd = "echo 1"
     result = os.popen(cmd).read()
     return result.strip() == "1"
 
@@ -100,3 +99,13 @@ def get_app_template_path():
     if os.path.exists(home_template_path):
         return home_template_path
     return relative_template_path
+
+
+def get_protontricks_provider():
+    if INTERNAL_PROTONTRICKS_FORCE_USE == 1:
+        return INTERNAL_PROTONTRICKS_CMD_PREFIX.format(os.path.join(get_user_homepath(), APP_PROGRAM_PATH))
+
+    if is_protontricks_installed():
+        return PROTONTRICKS_CMD_PREFIX
+    else:
+        return INTERNAL_PROTONTRICKS_CMD_PREFIX.format(os.path.join(get_user_homepath(), APP_PROGRAM_PATH))

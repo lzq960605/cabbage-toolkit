@@ -4,12 +4,12 @@ import time
 from queue import Queue
 from threading import Thread
 
-from app_const import PROTONTRICKS_CMD_PREFIX, APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
+from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
 from steam import STEAM_COMPAT_TOOL_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
-    launch_subprocess_cmd
+    launch_subprocess_cmd, get_protontricks_provider
 
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
@@ -83,7 +83,7 @@ class CmdHandler(object):
         return is_protontricks_installed()
 
     def gameList(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + " -l")
+        dict_data = runShellCommand(get_protontricks_provider() + " -l")
         if WINDOWS_MOCK:
             dict_data['result'] = WINDOWS_MOCK_GAME_LIST
             dict_data['cmdCode'] = 0
@@ -110,7 +110,7 @@ class CmdHandler(object):
 
     # ========= 游戏设置 =========
     def runExe(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_EXE_CMDLINE.format(self.params['targetPath'],
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_EXE_CMDLINE.format(self.params['targetPath'],
                                                                                      self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
@@ -118,7 +118,7 @@ class CmdHandler(object):
         return dict_data
 
     def runBat(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_BAT_CMDLINE.format(self.params['targetPath'],
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_BAT_CMDLINE.format(self.params['targetPath'],
                                                                                      self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
@@ -130,28 +130,28 @@ class CmdHandler(object):
 
     # ========= 辅助功能 =========
     def openTaskMgr(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_TASKMGR_CMDLINE.format(self.params['gameId']))
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_TASKMGR_CMDLINE.format(self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
         return dict_data
 
     def openRegedit(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_REGEDIT_CMDLINE.format(self.params['gameId']))
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_REGEDIT_CMDLINE.format(self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
         return dict_data
 
     def openWineCfg(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_WINECFG_CMDLINE.format(self.params['gameId']))
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_WINECFG_CMDLINE.format(self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
         return dict_data
 
     def openExplorer(self):
-        dict_data = runShellCommand(PROTONTRICKS_CMD_PREFIX + RUN_EXPLORER_CMDLINE.format(self.params['gameId']))
+        dict_data = runShellCommand(get_protontricks_provider() + RUN_EXPLORER_CMDLINE.format(self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
