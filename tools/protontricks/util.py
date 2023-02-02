@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 from subprocess import PIPE, check_output, run, Popen, DEVNULL
 
-import pkg_resources
+
 
 __all__ = (
     "SUPPORTED_STEAM_RUNTIMES", "lower_dict",
@@ -124,26 +124,32 @@ def get_runtime_library_paths(proton_app, use_bwrap=True):
     ])
 
 
-WINE_SCRIPT_TEMPLATE = Path(
-    pkg_resources.resource_filename(
-        "protontricks", "data/scripts/wine_launch.sh"
-    )
-).read_text(encoding="utf-8")
-WINESERVER_KEEPALIVE_SH_SCRIPT = Path(
-    pkg_resources.resource_filename(
-        "protontricks", "data/scripts/wineserver_keepalive.sh"
-    )
-).read_text(encoding="utf-8")
-WINESERVER_KEEPALIVE_BATCH_SCRIPT = Path(
-    pkg_resources.resource_filename(
-        "protontricks", "data/scripts/wineserver_keepalive.bat"
-    )
-).read_text(encoding="utf-8")
-BWRAP_LAUNCHER_SH_SCRIPT = Path(
-    pkg_resources.resource_filename(
-        "protontricks", "data/scripts/bwrap_launcher.sh"
-    )
-).read_text(encoding="utf-8")
+# WINE_SCRIPT_TEMPLATE = Path(
+#     pkg_resources.resource_filename(
+#         "protontricks", "data/scripts/wine_launch.sh"
+#     )
+# ).read_text(encoding="utf-8")
+# WINESERVER_KEEPALIVE_SH_SCRIPT = Path(
+#     pkg_resources.resource_filename(
+#         "protontricks", "data/scripts/wineserver_keepalive.sh"
+#     )
+# ).read_text(encoding="utf-8")
+# WINESERVER_KEEPALIVE_BATCH_SCRIPT = Path(
+#     pkg_resources.resource_filename(
+#         "protontricks", "data/scripts/wineserver_keepalive.bat"
+#     )
+# ).read_text(encoding="utf-8")
+# BWRAP_LAUNCHER_SH_SCRIPT = Path(
+#     pkg_resources.resource_filename(
+#         "protontricks", "data/scripts/bwrap_launcher.sh"
+#     )
+# ).read_text(encoding="utf-8")
+
+current_file_path = os.path.dirname(__file__)
+WINE_SCRIPT_TEMPLATE = Path(os.path.join(current_file_path, "data/scripts/wine_launch.sh")).read_text(encoding="utf-8")
+WINESERVER_KEEPALIVE_SH_SCRIPT = Path(os.path.join(current_file_path, "data/scripts/wineserver_keepalive.sh")).read_text(encoding="utf-8")
+WINESERVER_KEEPALIVE_BATCH_SCRIPT = Path(os.path.join(current_file_path, "data/scripts/wineserver_keepalive.bat")).read_text(encoding="utf-8")
+BWRAP_LAUNCHER_SH_SCRIPT = Path(os.path.join(current_file_path, "data/scripts/bwrap_launcher.sh")).read_text(encoding="utf-8")
 
 
 def create_wine_bin_dir(proton_app, use_bwrap=True):

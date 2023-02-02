@@ -10,9 +10,8 @@ from pathlib import Path
 from subprocess import PIPE, CalledProcessError, run
 
 import pkg_resources
-
-from .config import get_config
-from .flatpak import get_inaccessible_paths
+from config import get_config
+from flatpak import get_inaccessible_paths
 
 __all__ = (
     "LocaleError", "get_gui_provider", "select_steam_app_with_gui",

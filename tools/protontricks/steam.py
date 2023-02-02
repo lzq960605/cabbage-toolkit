@@ -7,9 +7,9 @@ from collections import OrderedDict
 from pathlib import Path
 
 import vdf
+from flatpak import is_flatpak_sandbox
 
-from .flatpak import is_flatpak_sandbox
-from .util import lower_dict
+from util import lower_dict
 
 __all__ = (
     "COMMON_STEAM_DIRS", "SteamApp", "find_steam_installations",
