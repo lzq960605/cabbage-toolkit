@@ -81,16 +81,23 @@
 
 
     <el-container>
-      <el-header style="text-align: right; font-size: 12px">
-        <span>请选择:</span>
-        <el-select @change="onChangeWindows" v-model="main_windows" placeholder="请选择">
-          <el-option
-                  v-for="item in options"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
-          </el-option>
-        </el-select>
+      <el-header  style="display: flex;justify-content: space-between;  font-size: 12px">
+          <div style="width: 30%;text-align: left">
+              <span style="font-size: 18px;font-weight: bolder">大白菜工具箱{{ appSetting.version }}</span>
+              &nbsp;&nbsp;&nbsp;<a href="#" @click="onEnterAuthorHomeSite" style="color: #6e3ac2">作者B站点首页</a>
+          </div>
+          <div style="width: 70%;text-align: right;">
+              <span>请选择:</span>
+              <el-select @change="onChangeWindows" v-model="main_windows" placeholder="请选择">
+                  <el-option
+                          v-for="item in options"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value">
+                  </el-option>
+              </el-select>
+          </div>
+
       </el-header>
       <el-container  v-if="main_windows=='1'">
         <el-aside width="200px" style="height:580px;width: 220px">
@@ -120,7 +127,7 @@
               <el-button type="success" plain @click="onRunWindowsApp('exe')">选择exe并运行</el-button>
               <el-button type="success" plain @click="onRunWindowsApp('bat')">选择bat并运行</el-button>
               <el-button type="success" plain @click="onShowStorageChoice('openDiskC_Path')" >打开C盘位置</el-button>
-              <el-button type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
+              <el-button v-if="currentGame.nonSteam=='0'" type="success" plain @click="onShowStorageChoice('openGameInstallPath')" >打开游戏安装目录</el-button>
             </el-row>
           </el-card>
 
@@ -336,6 +343,7 @@
           },
           // 教程配置，优先从云端获取
           appSetting: {
+              "version":"1.0.0",
               "adv": {
                   "author": "大白菜v50",
                   "author_home_page": "https://www.bilibili.com/video/BV17M411B7Ps/",
@@ -370,6 +378,11 @@
                 loading.close();
             }, waitSecond*1000);
         },
+        onEnterAuthorHomeSite:function(){
+            if(this.appSetting.adv.author_home_page){
+                window.open(this.appSetting.adv.author_home_page);
+            }
+        },
         onGetAppSetting:function () {
             commandRequest('GAME_SETTING', 'getAppSetting', {}).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
@@ -377,7 +390,7 @@
                 }
                 if(resp.data.data.result.length > 0){
                     this.appSetting = JSON.parse(resp.data.data.result);
-                    console.log('onGetAppSetting' + JSON.stringify(this.appSetting));
+                    console.log('onGetAppSetting: ' + JSON.stringify(this.appSetting));
                 }
             }).catch((e)=>{
                 console.error(e);
@@ -385,11 +398,9 @@
             });
         },
         onClickGameItem:function (gameItem) {
-            console.log(JSON.stringify(gameItem));
             this.currentGame = JSON.parse(JSON.stringify(gameItem));
         },
         onClickGeProtonItem:function (item) {
-          console.log(JSON.stringify(item));
           const currentGeProton = JSON.parse(JSON.stringify(item));
           currentGeProton.path = STEAM_CONST.STEAM_COMPAT_TOOL_PATH + "/" + item.name;
           this.currentGeProton = currentGeProton;
@@ -403,7 +414,6 @@
                     return;
                 }
                 // result:{need_update: 1, version: '1.0.0'}
-                console.log(resp.data.data);
                 this.$message.success('升级完成, ');
                 this.$alert(`升级完成，程序将自动关闭，请手动启动应用`, '提示', {
                     confirmButtonText: '确定',
@@ -431,7 +441,6 @@
                     return;
                 }
                 // result:{need_update: 1, version: '1.0.0'}
-                console.log(resp.data.data);
                 if(resp.data.data.result.need_update == 1){
                     this.$alert(`检测到有新版本:${resp.data.data.result.version}, 是否现在升级?`, '提示', {
                         cancelButtonText: '取消',
@@ -462,7 +471,6 @@
             if(apiErrorAndReturn(this, resp)){
               return;
             }
-            console.log(resp.data.data.result);
             let path = resp.data.data.result;
             path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
             if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
@@ -511,11 +519,15 @@
           })
         },
         onShowStorageChoice(storageDialogTarget){
+          // 学习版游戏C盘仅仅会安装在内部存储上
+          if(this.storageDialogTarget === 'openDiskC_Path' && this.currentGame.nonSteam == '1'){
+              this.onOpenDiskC_Path('INTERNAL_STORAGE');
+              return;
+          }
           this.storageDialogTarget = storageDialogTarget;
           this.storageDialogVisible = true;
         },
         onConfirmStorageChoice(choice){
-          console.log(`onConfirmStorageChoice:${choice}`);
           if(this.storageDialogTarget === 'openDiskC_Path'){
             this.onOpenDiskC_Path(choice ? 'SD_CARD' : 'INTERNAL_STORAGE');
           }
@@ -615,10 +627,8 @@
             if(apiErrorAndReturn(this, resp)){
               return;
             }
-            console.log(resp.data.data.result);
             const result = resp.data.data.result.trim();
             const version =result.indexOf('version:') >= 0 ? result.substring(result.indexOf('version:') + 'version:'.length, result.indexOf(')')) : '';
-            console.log(version);
             const currentGeProton = JSON.parse(JSON.stringify(this.currentGeProton));
             currentGeProton.version = version;
             this.currentGeProton = currentGeProton;
@@ -646,7 +656,6 @@
             if(apiErrorAndReturn(this, resp)){
               return;
             }
-            console.log(resp.data.data.result);
             if(!resp.data.data.result){
               this.geGameOptionConf = {
                 WINE_TASKMGR: '0',
@@ -681,7 +690,6 @@
             if(apiErrorAndReturn(this, resp)){
               return;
             }
-            console.log(resp.data.data.result);
             this.$message.success('设置成功');
           }).catch((e)=>{
             console.error(e);
@@ -718,13 +726,11 @@
                 callback: (action) => {
                     if (action === 'confirm') {
                         this.updateGeProtonGameConf({WINE_EXTRA_EXE:''});
-                        this.$message.success('修改成功');
                     }
                 }
               });
               return;
             }
-            console.log(resp.data.data.result);
             let path = resp.data.data.result;
             path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
             if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
@@ -760,7 +766,6 @@
           else {
               this.geGameOptionConf['WINE_TASKMGR'] = '0'
           }
-          console.log(`udpateGetProton after:${this.geGameOptionConf['WINE_TASKMGR']}`);
           this.updateGeProtonGameConf({WINE_TASKMGR:this.geGameOptionConf['WINE_TASKMGR']});
         },
 
@@ -774,11 +779,9 @@
               if(apiErrorAndReturn(this, resp)){
                 return;
               }
-              console.log(resp.data.data.result);
               const result = resp.data.data.result;
               const pattg = /.* \([\d]{2,}\)/g;
               let gameList = result.match(pattg) || [];
-              console.log(gameList);
               gameList = gameList.map(v=>{
                 const id = v.substring(v.indexOf('(')+1, v.indexOf(')'));
                 return {
@@ -788,7 +791,6 @@
                   diskC_Path: '.local/share/Steam/steamapps/compatdata/' + id + '/pfx/drive_c',
                 }
               });
-              console.log(gameList);
               this.gameList = gameList;
             }).catch((e)=>{
               console.error(e);
@@ -801,17 +803,14 @@
               if(apiErrorAndReturn(this, resp)){
                 return;
               }
-              console.log(resp.data.data.result);
               const result = resp.data.data.result;
               const pattg = /GE-Proton[\d]+-[\d]+/g;
               let geProtonList = result.match(pattg) || [];
-              console.log(geProtonList);
               geProtonList = geProtonList.map(v=>{
                 return {
                   name: v
                 }
               });
-              console.log(geProtonList);
               this.geProtonList = geProtonList;
 
               this.geGameOptions = this.gameList.map(v=>{
@@ -839,14 +838,12 @@
       },
 
       mounted: function () {
-        // console.log('mounted')
         this.onChangeWindows();
         // 先检查protontricks是否已安装
         commandRequest('GAME_SETTING', 'checkProtontricksInstalled', {}).then((resp)=>{
           if(apiErrorAndReturn(this, resp)){
             return;
           }
-          console.log(resp.data.data);
           // if(!resp.data.data){
           if(false){
               this.$alert('检测到没有安装protontricks, 请在"discover商店"搜索protontricks安装', '提示', {
@@ -870,7 +867,6 @@
                 if(apiErrorAndReturn(this, resp)){
                     return;
                 }
-                console.log(resp.data.data);
                 if(resp.data.data && resp.data.data.length > 0){
                     this.onHandlerAsyncTaskError(resp.data.data);
                 }

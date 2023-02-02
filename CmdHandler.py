@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import time
@@ -70,7 +71,7 @@ class CmdHandler(object):
 
         return code, errmsg, data
 
-    # ========= 私有方法 =========
+    # ========= 常规方法 =========
     def fetch_async_task_result(self):
         result = []
         while not async_task_result.empty():
@@ -258,7 +259,9 @@ class CmdHandler(object):
         file = open(config_file, encoding="utf-8")
         content = file.read()
         file.close()
-        dict_data['result'] = content
+        content_dict = json.loads(content)
+        content_dict['version'] = APP_VERSION
+        dict_data['result'] = json.dumps(content_dict)
         return dict_data
 
     # 升级本地app到最新版本
@@ -286,14 +289,6 @@ class CmdHandler(object):
         return dict_data
 
     def readGeProtonGameConfToDict(self):
-        # command = "cat " + get_user_homepath() + "/" + APP_GE_PROTON_CONF_PATH + "/" + self.params['gameId'] + ".conf "
-        # dict_data = runShellCommand(command)
-        # conf_dict = {}
-        # if dict_data['cmdCode'] == 0:
-        #     for s in dict_data['result'].split("\n"):
-        #         if s.strip() == "" or s.find('=') == -1:
-        #             continue
-        #         conf_dict[s.split('=')[0]] = s.split('=')[1]
         config_file = get_user_homepath() + "/" + APP_GE_PROTON_CONF_PATH + \
                       "/" + self.params['gameId'] + ".conf"
         if not os.path.exists(config_file):
@@ -302,7 +297,6 @@ class CmdHandler(object):
                 "result": None,
                 "errMsg": "",
             }
-
         file = open(config_file, encoding="utf-8")
         content = file.read()
         file.close()
@@ -311,7 +305,6 @@ class CmdHandler(object):
             if s.strip() == "" or s.find('=') == -1:
                 continue
             conf_dict[s.split('=')[0].strip()] = s.split('=')[1].replace("/r", "")
-
         return {
             "cmdCode": 0,
             "result": conf_dict,

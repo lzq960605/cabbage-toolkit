@@ -34,7 +34,7 @@ def api_cmd():
         "uri" : request.path,
         "time" : str(time.time()),
     })
-    print("/api/cmd, command:" + request.json['command'])
+    print("/api/cmd, command: " + request.json['command'])
     response.content_type = 'application/json'
     category = request.json['category']
     command = request.json['command']
@@ -76,20 +76,6 @@ def shutdown():
 
 
 
-def pool_ui_exit():
-    pass
-    # while True:
-    #     if last_timestamp != 0 and (int(str(time.time()).split('.')[0])-10) > last_timestamp:
-    #         shutdown()
-    #         time.sleep(3)
-    #         plat = platform.system().lower()
-    #         if plat == 'linux':
-    #             cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
-    #             result = os.popen(cmd).read()
-    #             print("linux kill task result:" + result)
-    #         break
-    #
-    #     time.sleep(10)
 
 @route('/app/exit')
 def app_exit():
@@ -116,7 +102,6 @@ if __name__ == '__main__':
     # main()
     create_app_default_path()
     Thread(target=open_browser_with_url).start()
-    # Thread(target=pool_ui_exit).start()
     run(server=server)
     print("cabbage-toolkit exit.")
 

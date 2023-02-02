@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=大白菜工具集
+Name=大白菜工具箱
 Exec=python3 /home/deck/.cabbage_toolkit/program/main.py
 Type=Application
 StartupNotify=true

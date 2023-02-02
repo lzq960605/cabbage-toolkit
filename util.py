@@ -69,10 +69,6 @@ def get_system_folder_opener():
     return None
 
 
-# FIXME: just simple judge
-def is_run_on_steamdeck():
-    return os.environ.get("HOME", "") == '/home/deck'
-
 
 def is_protontricks_installed():
     cmd = "flatpak list | grep protontricks | wc -l"
