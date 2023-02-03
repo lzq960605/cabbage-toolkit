@@ -7,7 +7,7 @@ __all__ = ("get_winetricks_path",)
 
 logger = logging.getLogger("protontricks")
 
-
+current_file_path = os.path.dirname(__file__)
 def get_winetricks_path():
     """
     Return to the path to 'winetricks' executable or return None if not found
@@ -29,7 +29,11 @@ def get_winetricks_path():
     logger.info(
         "WINETRICKS environment variable is not available. "
         "Searching from $PATH.")
-    winetricks_path = shutil.which("winetricks")
+    #winetricks_path = shutil.which("winetricks")
+    #winetricks_path = "/home/deck/.local/share/Steam/compatibilitytools.d/GE-Proton7-36/protonfixes/winetricks"
+    #winetricks_path = "/home/deck/.local/share/Steam/compatibilitytools.d/GE-Proton7-36/protonfixes/winetricks"
+    winetricks_path = os.path.join(current_file_path, "../winetricks_tools/winetricks")
+    
 
     if winetricks_path:
         return Path(winetricks_path)

@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 from subprocess import PIPE, CalledProcessError, run
 
-import pkg_resources
+#import pkg_resources
 from config import get_config
 from flatpak import get_inaccessible_paths
 
@@ -48,16 +48,20 @@ def get_gui_provider():
         ) from exc
 
 
+current_file_path = os.path.dirname(__file__)
+WINE_SCRIPT_TEMPLATE = Path(os.path.join(current_file_path, "data/scripts/wine_launch.sh"))
+
 def _get_appid2icon(steam_apps, steam_path):
     """
     Get icons for Steam apps to show in the app selection dialog.
     Return a {appid: icon_path} dict.
     """
-    placeholder_path = Path(
-        pkg_resources.resource_filename(
-            "protontricks", "data/data/icon_placeholder.png"
-        )
-    )
+#    placeholder_path = Path(
+#        pkg_resources.resource_filename(
+#            "protontricks", "data/data/icon_placeholder.png"
+#        )
+#    )
+    Path(os.path.join(current_file_path, "data/data/icon_placeholder.png")) 
 
     icon_dir = steam_path / "appcache" / "librarycache"
     existing_names = [path.name for path in icon_dir.glob("*")]
