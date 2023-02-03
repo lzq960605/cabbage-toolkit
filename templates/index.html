@@ -239,7 +239,44 @@
         </el-aside>
       </el-container>
 
-      <el-footer>v1.0.0</el-footer>
+      <el-container  v-if="main_windows=='3'">
+          <div style="display: flex; flex-direction: column">
+              <!-- type="border-card"  -->
+             <el-tabs tab-position="left" style="width: 100%">
+              <el-tab-pane label="系统工具">
+                  <!--列表-->
+                  <el-table size="small" :data="systemToolsListData" highlight-current-row border >
+                      <el-table-column sortable prop="deptName" label="软件图标" align="center" min-width="120">
+                          <template v-if="scope.row.icon"  width="70" slot-scope="scope">
+                              <img   style="width:60px;height:60px;border:none;" :src="scope.row.icon">
+                          </template>
+                      </el-table-column>
+                      <el-table-column sortable prop="editTime" label="简介" width="580">
+                          <template slot-scope="scope">
+                              <p>软件名称:{{ scope.row.name }}</p>
+                              <p>简介:{{ scope.row.introduce }}</p>
+                          </template>
+                      </el-table-column>
+                      <el-table-column align="center" label="操作" min-width="240">
+                          <template slot-scope="scope">
+                              <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
+                              <el-button size="mini" @click="onSystemToolsInstallFromDownloadPath(scope.$index, scope.row)">从下载目录安装</el-button>
+                              <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                          </template>
+                      </el-table-column>
+                  </el-table>
+              </el-tab-pane>
+              <el-tab-pane label="windows软件">windows软件</el-tab-pane>
+          </el-tabs>
+              <div style="text-align: left;font-size: 10px;color: #777;">
+                  <p>Tips:</p>
+                  <p>1. 下载的软件都要放置到用户下载目录(Downloads)下，不然无法扫描安装</p>
+              </div>
+          </div>
+
+      </el-container>
+
+      <el-footer></el-footer>
     </el-container>
 
 
@@ -257,6 +294,26 @@
         <el-button type="success" plain type="primary" @click="onConfirmStorageChoice(true)">是</el-button>
       </span>
     </el-dialog>
+
+      <!-- 选择匹配的安装软件列表 -->
+      <el-dialog title="选择要安装的软件" :visible.sync="editFormVisible" width="30%">
+          <el-form label-width="80px" :model="addModel">
+              <el-form-item label="选择软件" prop="gender">
+                  <el-select v-model="addModel.gender" placeholder="请选择">
+                      <el-option
+                              v-for="item in genderOptions"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value">
+                      </el-option>
+                  </el-select>
+              </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+              <el-button size="small">取消</el-button>
+              <el-button size="small" type="primary"  class="title">安装</el-button>
+          </div>
+      </el-dialog>
   </div>
 </body>
   <script src="axios/axios.min.js"></script>
@@ -316,6 +373,9 @@
           }, {
             value: '2',
             label: '打兼容层补丁'
+          }, {
+              value: '3',
+              label: '软件中心'
           }],
           main_windows: '1',  // 1: GAME_SETTING, 2: PROTON_PATCH
 
@@ -334,6 +394,29 @@
           storageDialogVisible: false,
           storageDialogTarget: '', // openDiskC_Path, openGameInstallPath
 
+          editFormVisible: false, //控制软件选择对话框显示与隐藏
+            // --------- dialog -------//
+          addModel:{
+            auid:'', // 要添加的用户uid
+            token:'', // 用户登录token
+            name:'', // 账号昵称
+            avatar:'', // 用户头像
+            sign:'', // 用户签名
+            email:'', // 用户email
+            birth:'', // 用户生日
+            mobile:'', // 用户mobile
+            gender:'', // 用户性别，0表示未知，1表示男，2女表示女
+            userType: 'USER',
+            businessPlatform: 'BASE',
+         },
+          genderOptions: [{
+            value: 1,
+            label: 'GE-Proton7-48 GE-Proton7-48'
+          }, {
+            value: 2,
+            label: 'CheatEngine'
+          }],
+
           geGameOptions: [],
           geGameOptionValue: '',  // 游戏id
           // 兼容层游戏持久化配置
@@ -341,7 +424,7 @@
             WINE_TASKMGR:'',
             WINE_EXTRA_EXE:'',
           },
-          // 教程配置，优先从云端获取
+          // app配置，优先从云端获取
           appSetting: {
               "version":"1.0.0",
               "adv": {
@@ -353,7 +436,17 @@
                   "install_ge_proton": "https://www.bilibili.com/read/cv21084708/",
                   "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
               },
-          }
+              "user_home_path": "/home/deck"
+          },
+          systemToolsListData: [{
+              name:'GE-Proton-7.41',
+              icon:'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
+              url:'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
+              introduce:'这是一个很好的软件',
+              key:'GE-Proton-7.41',
+              install_way:'ARCHIVE_DECOMPRESSION',
+          }],
+          windowsAppListData: [],
         }
       },
       methods: {
@@ -778,6 +871,40 @@
           this.readGeProtonGameConf();
         },
 
+        onSystemToolsDownload(index, row){
+            window.open(row.url);
+        },
+        onSystemToolsShowPath(index, row){
+            this.onOpenTargetPath(STEAM_CONST.STEAM_COMPAT_TOOL_PATH);
+        },
+        onSystemToolsInstallFromDownloadPath(index, row){
+            this.editFormVisible = true;
+            return;
+
+            const compatToolPath = `${appSetting.user_home_path}/Downloads`;
+            commandRequest('GAME_SETTING', 'ioCtl', {
+                ctl: 'list',
+                src: compatToolPath
+            }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                let fileList = resp.data.data.result || [];
+                fileList = fileList.filter(v=>v.indexOf(row.key) >= 0);
+                if(fileList.length === 0){
+                    console.error("没有在用户下载目录找到:" + row.name);
+                    return;
+                }
+                // 找到了文件, 弹选择框安装
+
+
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            })
+        },
+          
+
         onChangeWindows:function () {
           if(this.main_windows === '1'){
             commandRequest('GAME_SETTING', 'gameList', {}).then((resp)=>{
@@ -849,18 +976,8 @@
           if(apiErrorAndReturn(this, resp)){
             return;
           }
-          // if(!resp.data.data){
-          if(false){
-              this.$alert('检测到没有安装protontricks, 请在"discover商店"搜索protontricks安装', '提示', {
-                  confirmButtonText: '确定',
-                  callback: action => {
-                      this.checkAppOnlineVersion();
-                  }
-              });
-          }
-          else {
-              this.checkAppOnlineVersion();
-          }
+
+          this.checkAppOnlineVersion();
         }).catch((e)=>{
           console.error(e);
           this.$message.error(e.message);

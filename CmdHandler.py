@@ -8,6 +8,7 @@ from threading import Thread
 from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
+from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_ctl_del, io_ctl_decompress_to
 from steam import STEAM_COMPAT_TOOL_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
     launch_subprocess_cmd, get_protontricks_provider
@@ -78,6 +79,50 @@ class CmdHandler(object):
             result.append(async_task_result.get())
 
         return result
+
+    def ioCtl(self):
+        ctl = self.params['ctl']
+        if ctl == 'file_exist':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_file_exist(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'copy':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_copy(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'move':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_move(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'del':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_del(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'list':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_list(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'decompress_to':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_decompress_to(self.params['src']),
+                "errMsg": "",
+            }
+        return {
+            "cmdCode": -1,
+            "result": None,
+            "errMsg": "io_ctl未定义",
+        }
 
 
     def checkProtontricksInstalled(self):
@@ -264,6 +309,7 @@ class CmdHandler(object):
             return dict_data
         content_dict = json.loads(content)
         content_dict['version'] = APP_VERSION
+        content_dict['user_home_path'] = get_user_homepath()
         dict_data['result'] = json.dumps(content_dict)
         return dict_data
 

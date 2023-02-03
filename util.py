@@ -1,7 +1,10 @@
 import os
 import platform
 import subprocess
+import tarfile
+import zipfile
 
+from ArchiveDecompression import ArchiveDecompression
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
     PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE
 from dev_mock import WINDOWS_MOCK
@@ -105,3 +108,22 @@ def get_protontricks_provider():
         return PROTONTRICKS_CMD_PREFIX
     else:
         return INTERNAL_PROTONTRICKS_CMD_PREFIX.format(os.path.join(get_user_homepath(), APP_PROGRAM_PATH))
+
+
+def untar_file_to_path(zip_file, target_path):
+    t = tarfile.open(zip_file)
+    t.extractall(path = target_path)
+    t.close()
+
+# 解压zip文件, zip_file: 源文件  target_path:目标文件
+def unzip_file_to_path(zip_file, target_path):
+    zfile = zipfile.ZipFile(zip_file, 'r')
+    for file in zfile.namelist():
+        zfile.extract(file, target_path)
+
+    zfile.close()
+
+# 解压文件到指定目录
+def decompression_file_to(target_file, target_path):
+    f = ArchiveDecompression(target_file)
+    f.decompression_to(target_path)
