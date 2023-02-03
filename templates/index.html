@@ -246,7 +246,7 @@
              <el-tabs tab-position="left" style="width: 100%">
               <el-tab-pane label="系统工具">
                   <!--列表-->
-                  <el-table size="small" :data="systemToolsListData" highlight-current-row border >
+                  <el-table size="small" :data="appSetting.necessary_tools" highlight-current-row border >
                       <el-table-column sortable prop="deptName" label="软件图标" align="center" min-width="120">
                           <template v-if="scope.row.icon"  width="70" slot-scope="scope">
                               <img   style="width:60px;height:60px;border:none;" :src="scope.row.icon">
@@ -261,13 +261,35 @@
                       <el-table-column align="center" label="操作" min-width="340">
                           <template slot-scope="scope">
                               <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
-                              <el-button size="mini" @click="onSystemToolsInstallFromDownloadPath(scope.$index, scope.row)">从下载目录安装</el-button>
+                              <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
                               <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
                           </template>
                       </el-table-column>
                   </el-table>
               </el-tab-pane>
-              <el-tab-pane label="windows软件">windows软件</el-tab-pane>
+              <el-tab-pane label="windows软件">
+                  <!--列表-->
+                  <el-table size="small" :data="appSetting.windows_app" highlight-current-row border >
+                      <el-table-column sortable prop="deptName" label="软件图标" align="center" min-width="120">
+                          <template v-if="scope.row.icon"  width="70" slot-scope="scope">
+                              <img   style="width:60px;height:60px;border:none;" :src="scope.row.icon">
+                          </template>
+                      </el-table-column>
+                      <el-table-column sortable prop="editTime" label="简介" width="484">
+                          <template slot-scope="scope">
+                              <p>软件名称:{{ scope.row.name }}</p>
+                              <p>简介:{{ scope.row.introduce }}</p>
+                          </template>
+                      </el-table-column>
+                      <el-table-column align="center" label="操作" min-width="340">
+                          <template slot-scope="scope">
+                              <el-button size="mini" type="danger" @click="onSoftwareDownload(scope.$index, scope.row)">下载</el-button>
+                              <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row)">从下载目录安装</el-button>
+                              <el-button size="mini"  @click="onSoftwareShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                          </template>
+                      </el-table-column>
+                  </el-table>
+              </el-tab-pane>
           </el-tabs>
               <div style="text-align: left;font-size: 10px;color: #777;">
                   <p>Tips:</p>
@@ -297,12 +319,12 @@
     </el-dialog>
 
       <!-- 选择匹配的安装软件列表 -->
-      <el-dialog title="选择要安装的软件" :visible.sync="editFormVisible" width="30%">
-          <el-form label-width="80px" :model="addModel">
+      <el-dialog title="选择要安装的软件" :visible.sync="softwareDialogVisible" width="30%">
+          <el-form label-width="80px">
               <el-form-item label="选择软件" prop="gender">
-                  <el-select v-model="addModel.gender" placeholder="请选择">
+                  <el-select v-model="softwareDialogOptionsValue" placeholder="请选择">
                       <el-option
-                              v-for="item in genderOptions"
+                              v-for="item in softwareDialogOptions"
                               :key="item.value"
                               :label="item.label"
                               :value="item.value">
@@ -312,7 +334,7 @@
           </el-form>
           <div slot="footer" class="dialog-footer">
               <el-button size="small">取消</el-button>
-              <el-button size="small" type="primary"  class="title">安装</el-button>
+              <el-button size="small" type="primary"  class="title" @click="onConfirmInstallSoftware">安装</el-button>
           </div>
       </el-dialog>
   </div>
@@ -327,6 +349,7 @@
 
 
   <script>
+    const ARCHIVE_FILE_SUFFIX = [".tar", ".tar.xz", ".tar.gz", ".tar.gz", ".tar.bz2", ".tar.Z", ".tgz", ".zip"];
     const STEAM_CONST = {
       "STEAM_COMPAT_TOOL_PATH":".local/share/Steam/compatibilitytools.d",
       "STEAM_APPMANIFEST_PATH":".local/share/Steam/steamapps",
@@ -334,9 +357,9 @@
       "STEAM_APP_COMPAT_PATH":".local/share/Steam/steamapps/compatdata",
       "STEAM_SDCARD_APP_PATH":"/run/media/mmcblk0p1/steamapps/common",
       "STEAM_SDCARD_APP_COMPAT_PATH":"/run/media/mmcblk0p1/steamapps/compatdata",
+      "APP_WINDOWS_APP_PATH":".cabbage_toolkit/windows_app",
     };
     let fetch_async_task_ticker = null;
-
     function commandRequest(category, command, params, async_task) {
       return axios({
         method: 'post',
@@ -395,28 +418,10 @@
           storageDialogVisible: false,
           storageDialogTarget: '', // openDiskC_Path, openGameInstallPath
 
-          editFormVisible: false, //控制软件选择对话框显示与隐藏
-            // --------- dialog -------//
-          addModel:{
-            auid:'', // 要添加的用户uid
-            token:'', // 用户登录token
-            name:'', // 账号昵称
-            avatar:'', // 用户头像
-            sign:'', // 用户签名
-            email:'', // 用户email
-            birth:'', // 用户生日
-            mobile:'', // 用户mobile
-            gender:'', // 用户性别，0表示未知，1表示男，2女表示女
-            userType: 'USER',
-            businessPlatform: 'BASE',
-         },
-          genderOptions: [{
-            value: 1,
-            label: 'GE-Proton7-48 GE-Proton7-48'
-          }, {
-            value: 2,
-            label: 'CheatEngine'
-          }],
+          softwareDialogVisible: false, //控制软件选择对话框显示与隐藏
+          softwareDialogOptions: [],
+          softwareDialogOptionsValue: '',
+          softwareInfo: {},
 
           geGameOptions: [],
           geGameOptionValue: '',  // 游戏id
@@ -437,16 +442,34 @@
                   "install_ge_proton": "https://www.bilibili.com/read/cv21084708/",
                   "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
               },
-              "user_home_path": "/home/deck"
+              "user_home_path": "/home/deck",
+
+              "necessary_tools": [{
+                  "name":'GE-Proton7-48',
+                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
+                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
+                  "introduce":'这是一个很好的软件',
+                  "key":'GE-Proton7-48',
+                  "install_way":'ARCHIVE_DECOMPRESSION',
+              }],
+
+              "windows_app": [{
+                  "name":'CheatEngine',
+                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
+                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
+                  "introduce":'CheatEngine修改器',
+                  "key":'CheatEngine',
+                  "install_way":'ARCHIVE_DECOMPRESSION',
+              },{
+                  "name":'FLiNGTrainer',
+                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
+                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
+                  "introduce":'风灵月影修改器',
+                  "key":'FLiNGTrainer',
+                  "install_way":'ARCHIVE_DECOMPRESSION',
+              }],
           },
-          systemToolsListData: [{
-              name:'GE-Proton-7.41',
-              icon:'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-              url:'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-              introduce:'这是一个很好的软件',
-              key:'GE-Proton-7.41',
-              install_way:'ARCHIVE_DECOMPRESSION',
-          }],
+
           windowsAppListData: [],
         }
       },
@@ -460,6 +483,18 @@
             if(msg.trim().length > 0){
                 this.$message.success(msg);
             }
+            // 对感兴趣的异步消息进行截取
+            errArrays.forEach(v=>{
+                if(v.command.indexOf('untar_huge_file') >= 0){
+                    console.log(`untar_huge_file async task result: ${JSON.stringify(v)}`);
+                    if(v.data.cmdCode === 0){
+                        this.$alert(`安装兼容层成功, 请重启Steam客户端启用`);
+                    }
+                    else {
+                        this.$alert(`安装兼容层出错, 原因:${v.data.errMsg}`);
+                    }
+                }
+            })
         },
         lockScreen: function(waitSecond){
             const loading = this.$loading({
@@ -871,40 +906,145 @@
         onChangeGeProtonGame:function() {
           this.readGeProtonGameConf();
         },
-
         onSystemToolsDownload(index, row){
             window.open(row.url);
         },
         onSystemToolsShowPath(index, row){
             this.onOpenTargetPath(STEAM_CONST.STEAM_COMPAT_TOOL_PATH);
         },
-        onSystemToolsInstallFromDownloadPath(index, row){
-            this.editFormVisible = true;
-            return;
-
-            const compatToolPath = `${appSetting.user_home_path}/Downloads`;
+        onArchiveInstallFromDownloadPath(index, row, systemTools){
+            const softwarePath = `${this.appSetting.user_home_path}/Downloads`;
+            const isProton =  /GE-Proton[\d]+-[\d]+/g.test(this.softwareInfo.name);
             commandRequest('GAME_SETTING', 'ioCtl', {
                 ctl: 'list',
-                src: compatToolPath
+                src: softwarePath
             }).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
                 }
                 let fileList = resp.data.data.result || [];
-                fileList = fileList.filter(v=>v.indexOf(row.key) >= 0);
+                fileList = fileList.filter(v=>v.indexOf(row.key) >= 0); // 利用key搜索
+                fileList = fileList.filter(v=>{
+                    return ARCHIVE_FILE_SUFFIX.some(vv=>v.endsWith(vv));// 后缀名要满足
+                });
+                // Proton兼容层暂只支持tar类型压缩包, 去除zip包后缀
+                if(isProton){
+                    fileList = fileList.filter(v=>!v.endsWith(".zip"));
+                }
                 if(fileList.length === 0){
-                    console.error("没有在用户下载目录找到:" + row.name);
+                    this.$alert(row.name + " 不在用户下载目录(Downloads)下");
                     return;
                 }
+                this.softwareDialogOptions = fileList.map(v=>{
+                    return {
+                        value: v.toString(),
+                        label: v.toString(),
+                    }
+                });
+                this.softwareInfo = JSON.parse(JSON.stringify(row));
+                this.softwareInfo.systemTools = systemTools || 0; // 系统工具
+                this.softwareDialogOptionsValue = '';
                 // 找到了文件, 弹选择框安装
-
-
+                this.softwareDialogVisible = true;
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);
             })
         },
-          
+        onSoftwareDownload(index, row){
+          window.open(row.url);
+        },
+        onSoftwareShowPath(index, row){
+          this.onOpenTargetPath(`${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}`);
+        },
+        onConfirmInstallSoftware(){
+            this.softwareInfo.fileSelected = this.softwareDialogOptionsValue;
+            const isProton =  /GE-Proton[\d]+-[\d]+/g.test(this.softwareInfo.name) && this.softwareInfo.systemTools === 1;
+            if(isProton){
+                this.onConfirmInstallProton(isProton);
+                this.softwareDialogVisible = false;
+                return;
+            }
+            // 普通的小软件安装
+            let dstPath = `${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}`;
+            const srcPath = `${this.appSetting.user_home_path}/Downloads/${this.softwareInfo.fileSelected}`;
+            // 是否已安装相同版本的软件?
+            commandRequest('GAME_SETTING', 'ioCtl', {
+                ctl: 'file_exist',
+                src: `${dstPath}/${this.softwareInfo.name}`
+            }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                let exist = resp.data.data.result || false;
+                if(exist){
+                    this.$alert(`目录:${dstPath}已安装了该软件`);
+                    return;
+                }
+                // 解压压缩包方式安装(阻塞安装)
+                const loading = this.$loading({
+                    lock: true,
+                    text: '安装中',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
+                commandRequest('GAME_SETTING', 'ioCtl', {
+                    ctl: 'decompress_to',
+                    src: srcPath,
+                    dst: dstPath,
+                }).then((resp)=>{
+                    loading.close();
+                    if(apiErrorAndReturn(this, resp)){
+                        return;
+                    }
+                    this.$alert(`安装软件${this.softwareInfo.name}到${dstPath}成功`);
+                }).catch((e)=>{
+                    loading.close();
+                    console.error(e);
+                    this.$message.error(e.message);
+                })
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+            this.softwareDialogVisible = false;
+        },
+        onConfirmInstallProton(){
+            let dstPath = `${this.appSetting.user_home_path}/${STEAM_CONST.STEAM_COMPAT_TOOL_PATH}`;
+            const srcPath = `${this.appSetting.user_home_path}/Downloads/${this.softwareInfo.fileSelected}`;
+            // 是否已安装相同版本的软件?
+            commandRequest('GAME_SETTING', 'ioCtl', {
+                ctl: 'file_exist',
+                src: `${dstPath}/${this.softwareInfo.name}`
+            }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                let exist = resp.data.data.result || false;
+                if(exist){
+                    this.$alert(`目录:${dstPath}已安装了该软件`);
+                    return;
+                }
+                // 解压压缩包方式安装(使用异步任务)
+                commandRequest('GAME_SETTING', 'untar_huge_file', {
+                    src: srcPath,
+                    dst: dstPath,
+                }, 1).then((resp)=>{
+                    if(apiErrorAndReturn(this, resp)){
+                        return;
+                    }
+                    this.$alert(`已提交到后台任务解压安装, 请等待1分钟左右`);
+                }).catch((e)=>{
+                    console.error(e);
+                    this.$message.error(e.message);
+                })
+            }).catch((e)=>{
+                console.error(e);
+                this.$message.error(e.message);
+            });
+        },
+
+
 
         onChangeWindows:function () {
           if(this.main_windows === '1'){

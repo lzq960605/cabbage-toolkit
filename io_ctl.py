@@ -31,3 +31,8 @@ def io_ctl_list(src):
 def io_ctl_decompress_to(src, dst):
     ad = ArchiveDecompression(src)
     ad.decompression_to(dst)
+
+
+def io_ctl_decompression_to_with_system(src, dst):
+    ad = ArchiveDecompression(src)
+    ad.decompression_to_with_system(dst)

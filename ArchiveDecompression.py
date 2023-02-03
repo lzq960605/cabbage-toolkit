@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import tarfile
 import zipfile
 
@@ -59,3 +60,24 @@ class ArchiveDecompression(object):
 
         # 删除拷贝的压缩文件
         os.remove(target_file_copy)
+
+
+
+    # 使用linux命令解压tar(效率较快) tar -xvf GE-Proton7-48.tar.gz   -C "${HOME}/.local/share/Steam/compatibilitytools.d"
+    def decompression_to_with_system(self, target_path):
+        if not os.path.exists(target_path):
+            os.makedirs(target_path)
+        if self.is_tar_compression(self.target_file):
+            # os.system("tar -xf {} -C {}".format(self.target_file, target_path))
+            command = "tar -xf {} -C {}".format(self.target_file, target_path)
+            p = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+            com = p.communicate()
+            # com[0], com[1], p.returncode
+            if p.returncode != 0:
+                raise Exception(com[1])
+
+        if self.is_zip_compression(self.target_file):
+            zfile = zipfile.ZipFile(self.target_file, 'r')
+            zfile.extractall(path = target_path)
+            zfile.close()
+

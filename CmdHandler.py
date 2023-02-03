@@ -8,7 +8,8 @@ from threading import Thread
 from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
-from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_ctl_del, io_ctl_decompress_to
+from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_ctl_del, io_ctl_decompress_to, \
+    io_ctl_decompression_to_with_system
 from steam import STEAM_COMPAT_TOOL_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
     launch_subprocess_cmd, get_protontricks_provider
@@ -34,8 +35,8 @@ RUN_GET_ONLINE_VERSION_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdec
 RUN_GET_ONLINE_SETTING_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/app_center_setting.json"
 RUN_CLONE_NEWEST_CODE_CMDLINE = "git clone https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git  {}"
 
-
 async_task_result = Queue()
+
 
 class CmdHandler(object):
     def __init__(self, category, command, params, async_task, api_id):
@@ -46,12 +47,24 @@ class CmdHandler(object):
         self.api_id = api_id  #
 
     def _async_task_handler(self):
-        data = getattr(self, self.command)()
+        data = None
+        try:
+            data = getattr(self, self.command)()
+        except Exception as e:
+            print('invoke method error:', e)
+            data = {
+                "cmdCode": -1,
+                "errMsg": str(e),
+                "result": None,
+            }
+        finally:
+            pass
+        # data = getattr(self, self.command)()
         async_task_result.put({
             "api_id": self.api_id,
+            "command": self.command,
             "data": data,
         })
-
 
     def handle(self):
         print('ready to handle: %s, %s' % (self.command, self.params))
@@ -97,7 +110,7 @@ class CmdHandler(object):
         if ctl == 'move':
             return {
                 "cmdCode": 0,
-                "result": io_ctl_move(self.params['src']),
+                "result": io_ctl_move(self.params['src'], self.params['dst']),
                 "errMsg": "",
             }
         if ctl == 'del':
@@ -115,7 +128,7 @@ class CmdHandler(object):
         if ctl == 'decompress_to':
             return {
                 "cmdCode": 0,
-                "result": io_ctl_decompress_to(self.params['src']),
+                "result": io_ctl_decompress_to(self.params['src'], self.params['dst']),
                 "errMsg": "",
             }
         return {
@@ -124,6 +137,12 @@ class CmdHandler(object):
             "errMsg": "io_ctl未定义",
         }
 
+    def untar_huge_file(self):
+        return {
+            "cmdCode": 0,
+            "result": io_ctl_decompression_to_with_system(self.params['src'], self.params['dst']),
+            "errMsg": "",
+        }
 
     def checkProtontricksInstalled(self):
         return is_protontricks_installed()
@@ -157,7 +176,7 @@ class CmdHandler(object):
     # ========= 游戏设置 =========
     def runExe(self):
         dict_data = runShellCommand(get_protontricks_provider() + RUN_EXE_CMDLINE.format(self.params['targetPath'],
-                                                                                     self.params['gameId']))
+                                                                                         self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
@@ -165,7 +184,7 @@ class CmdHandler(object):
 
     def runBat(self):
         dict_data = runShellCommand(get_protontricks_provider() + RUN_BAT_CMDLINE.format(self.params['targetPath'],
-                                                                                     self.params['gameId']))
+                                                                                         self.params['gameId']))
         if WINDOWS_MOCK:
             dict_data['cmdCode'] = 0
 
@@ -203,8 +222,6 @@ class CmdHandler(object):
 
         return dict_data
 
-
-
     def openDiskC_Path(self):
         opener = get_system_folder_opener()
         if not opener:
@@ -226,7 +243,6 @@ class CmdHandler(object):
             raise Exception("Couldn't found folder opener, open folder failed!")
         dict_data = runShellCommand(opener + " " + self.params['targetPath'])
         return dict_data
-
 
     # ========= 兼容层功能 =========
     def makeGeProtonPatch(self):

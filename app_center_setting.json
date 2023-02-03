@@ -9,25 +9,28 @@
     "install_ge_proton": "https://www.bilibili.com/video/BV1Va411d7aS/",
     "install_protontricks": "https://www.bilibili.com/read/cv21084708/"
   },
-  "necessary_tools": [
-    {
-      "name": "GE-Proton7-30",
-      "key": "GE-Proton7-30",
-      "introduce": "steam GE兼容层工具",
-      "icon": "",
-      "url": "https://www.baidu.com",
-      "install_way": "zip,tar",
-      "install_path": "$HOME/.local/share/Steam/compatibilitytools.d"
-    },
-    {
-      "name": "protontricks",
-      "key": "protontricks",
-      "introduce": "protontricks工具，用于打proton游戏补丁",
-      "icon": "",
-      "url": "https://www.baidu.com",
-      "install_way": "flatpak",
-      "install_path": ""
-    }
-  ],
-  "windows_app": []
+  "necessary_tools": [{
+    "name":"GE-Proton7-48",
+    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
+    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
+    "introduce":"这是一个很好的软件",
+    "key":"GE-Proton7-48",
+    "install_way":"ARCHIVE_DECOMPRESSION"
+  }],
+
+  "windows_app": [{
+    "name":"CheatEngine",
+    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
+    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
+    "introduce":"CheatEngine修改器",
+    "key":"CheatEngine",
+    "install_way":"ARCHIVE_DECOMPRESSION"
+  },{
+    "name":"FLiNGTrainer",
+    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
+    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
+    "introduce":"风灵月影修改器",
+    "key":"FLiNGTrainer",
+    "install_way":"ARCHIVE_DECOMPRESSION"
+  }]
 }
