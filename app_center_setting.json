@@ -11,25 +11,24 @@
   },
   "necessary_tools": [{
     "name":"GE-Proton7-48",
-    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
-    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
-    "introduce":"这是一个很好的软件",
+    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "url":"https://url49.ctfile.com/f/32910349-802604661-fb5ed3?p=2419",
+    "introduce":"社区版兼容层7-48版本，提供更多的游戏支持 (下载访问密码: 2419)",
     "key":"GE-Proton7-48",
     "install_way":"ARCHIVE_DECOMPRESSION"
   }],
-
   "windows_app": [{
     "name":"CheatEngine",
-    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
-    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
-    "introduce":"CheatEngine修改器",
+    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "url":"https://url49.ctfile.com/f/32910349-802603653-be86f5?p=2419",
+    "introduce":"CheatEngine修改器6.7 (下载访问密码: 2419)",
     "key":"CheatEngine",
     "install_way":"ARCHIVE_DECOMPRESSION"
   },{
     "name":"FLiNGTrainer",
-    "icon":"http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg",
-    "url":"https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48",
-    "introduce":"风灵月影修改器",
+    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "url":"https://url49.ctfile.com/f/32910349-802603630-6201ca?p=2419",
+    "introduce":"风灵月影修改器 (下载访问密码: 2419)",
     "key":"FLiNGTrainer",
     "install_way":"ARCHIVE_DECOMPRESSION"
   }]
