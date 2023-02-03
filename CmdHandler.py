@@ -259,6 +259,9 @@ class CmdHandler(object):
         file = open(config_file, encoding="utf-8")
         content = file.read()
         file.close()
+        if content == "":
+            dict_data['result'] = ""
+            return dict_data
         content_dict = json.loads(content)
         content_dict['version'] = APP_VERSION
         dict_data['result'] = json.dumps(content_dict)
