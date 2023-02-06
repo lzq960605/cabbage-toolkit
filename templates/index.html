@@ -349,9 +349,6 @@
   <!-- import JavaScript -->
   <script src="element-ui/js/index.js"></script>
 
-  <script src="https://unpkg.com/vue-notifyjs/dist/vue-notifyjs.js"></script>
-
-
   <script>
     const ARCHIVE_FILE_SUFFIX = [".tar", ".tar.xz", ".tar.gz", ".tar.gz", ".tar.bz2", ".tar.Z", ".tgz", ".zip"];
     const STEAM_CONST = {
@@ -490,18 +487,6 @@
             if(msg.trim().length > 0){
                 this.$message.success(msg);
             }
-            // 对感兴趣的异步消息进行截取
-            errArrays.forEach(v=>{
-                if(v.command.indexOf('untar_huge_file') >= 0){
-                    console.log(`untar_huge_file async task result: ${JSON.stringify(v)}`);
-                    if(v.data.cmdCode === 0){
-                        this.$alert(`安装兼容层成功, 请重启Steam客户端启用`);
-                    }
-                    else {
-                        this.$alert(`安装兼容层出错, 原因:${v.data.errMsg}`);
-                    }
-                }
-            })
         },
         lockScreen: function(waitSecond){
             const loading = this.$loading({
@@ -1086,16 +1071,24 @@
                     this.$alert(`目录:${dstPath}已安装了该软件`);
                     return;
                 }
+                const loading = this.$loading({
+                    lock: true,
+                    text: '安装中',
+                    spinner: 'el-icon-loading',
+                    background: 'rgba(0, 0, 0, 0.7)'
+                });
                 // 解压压缩包方式安装(使用异步任务)
                 commandRequest('GAME_SETTING', 'untar_huge_file', {
                     src: srcPath,
                     dst: dstPath,
-                }, 1).then((resp)=>{
+                }).then((resp)=>{
+                    loading.close();
                     if(apiErrorAndReturn(this, resp)){
                         return;
                     }
-                    this.$alert(`已提交到后台任务解压安装, 请等待1分钟左右`);
+                    this.$alert(`安装兼容层${this.softwareInfo.name}到${dstPath}成功`);
                 }).catch((e)=>{
+                    loading.close();
                     console.error(e);
                     this.$message.error(e.message);
                 })
@@ -1154,13 +1147,7 @@
                 }
               });
               if(geProtonList.length === 0){
-                this.$alert('检测到没有安装GE-Proton, 请查看教程手动安装到指定目录', '提示', {
-                    confirmButtonText: '确定',
-                    callback: (action) => {
-                        this.onOpenTargetPath(STEAM_CONST.STEAM_COMPAT_TOOL_PATH);
-                        window.open(this.appSetting.helper_page.install_ge_proton);
-                    }
-                });
+                this.$alert(`检测到没有安装GE-Proton兼容层, 请到"软件中心"->"系统工具"下载`);
               }
             }).catch((e)=>{
               console.error(e);

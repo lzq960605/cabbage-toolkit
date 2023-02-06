@@ -1,8 +1,9 @@
 import os
 import shutil
-import subprocess
 import tarfile
 import zipfile
+
+from CmdlineExecutor import CmdlineExecutor
 
 
 class ArchiveDecompression(object):
@@ -69,12 +70,17 @@ class ArchiveDecompression(object):
             os.makedirs(target_path)
         if self.is_tar_compression(self.target_file):
             # os.system("tar -xf {} -C {}".format(self.target_file, target_path))
-            command = "tar -xf {} -C {}".format(self.target_file, target_path)
-            p = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-            com = p.communicate()
-            # com[0], com[1], p.returncode
-            if p.returncode != 0:
-                raise Exception(com[1])
+            # command = "tar -xf {} -C {}".format(self.target_file, target_path)
+            # p = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+            # com = p.communicate()
+            # if p.returncode != 0:
+            #     raise Exception(com[1])
+            cmdline = "tar -xvf {} -C {}".format(self.target_file, target_path)
+            executor = CmdlineExecutor(cmdline)
+            resp = executor.exec_with_new_terminal()
+            if resp['cmdCode'] != 0:
+                raise Exception(resp['errMsg'])
+
 
         if self.is_zip_compression(self.target_file):
             zfile = zipfile.ZipFile(self.target_file, 'r')

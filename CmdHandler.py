@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 import shutil
 import time
 from queue import Queue
@@ -138,9 +139,16 @@ class CmdHandler(object):
         }
 
     def untar_huge_file(self):
+        src = self.params['src']
+        dst = self.params['dst']
+        plat = platform.system().lower()
+        if plat == 'windows':
+            src = src.replace("C:", "/c").replace("\\", "/")
+            dst = dst.replace("C:", "/c").replace("\\", "/")
+
         return {
             "cmdCode": 0,
-            "result": io_ctl_decompression_to_with_system(self.params['src'], self.params['dst']),
+            "result": io_ctl_decompression_to_with_system(src, dst),
             "errMsg": "",
         }
 
