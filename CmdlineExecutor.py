@@ -76,6 +76,7 @@ class CmdlineExecutor(object):
         msg = ""
         errMsg = ""
         cmdCode = 0
+        tmp_cmd_file_path = ""
         try:
             terminal_provider = self._get_terminal_provider()
             # 把命令丢到一个临时sh文件
@@ -90,6 +91,8 @@ class CmdlineExecutor(object):
             print(e)
             print("error file:{}".format(e.__traceback__.tb_frame.f_globals["__file__"]))
             print("error line:{}".format(e.__traceback__.tb_lineno))
+        finally:
+            os.remove(tmp_cmd_file_path)
         return {
             "cmdCode": cmdCode,
             "result": self._byte_decode(msg).strip(),
