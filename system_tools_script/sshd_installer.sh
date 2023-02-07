@@ -3,7 +3,7 @@ echo "ready to install sshd."
 sudo steamos-readonly disable
 sudo pacman-key --init
 sudo pacman-key --populate archlinux
-sudo pacman -S openssh
+sudo pacman -S --noconfirm openssh
 systemctl start sshd
 sudo systemctl enable sshd.service
 
