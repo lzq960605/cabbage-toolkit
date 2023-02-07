@@ -11,22 +11,40 @@
   },
   "necessary_tools": [{
     "name":"GE-Proton7-48",
-    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "icon":"images/compression.png",
     "url":"https://url49.ctfile.com/f/32910349-802604661-fb5ed3?p=2419",
     "introduce":"社区版兼容层7-48版本，提供更多的游戏支持 (下载访问密码: 2419)",
     "key":"GE-Proton7-48",
     "install_way":"ARCHIVE_DECOMPRESSION"
+  },{
+    "name":"安装系统简繁体字库",
+    "icon":"images/shell.png",
+    "url":"",
+    "introduce":"使用locale-gen命令在linux系统安装简繁体字库，可解决部分老游戏的乱码问题，如《仙剑3》《仙剑4》《新绝代双骄》等。【安装过程中需要输入deck用户密码，steamos升级系统后需要重新安装】",
+    "key":"system_font_installer.sh",
+    "install_way":"LINUX_SCRIPT",
+    "test_command":"locale -a | grep zh_CN | wc -l",
+    "test_installed_condition":"GT_ZERO"
+  },{
+    "name":"安装sshd服务端",
+    "icon":"images/shell.png",
+    "url":"",
+    "introduce":"使用pacman安装sshd服务端，并设置开机启动。客户端可用winscp，MobaXterm等工具使用sftp协议传文件，也可用ssh协议远程执行命令。【安装过程中需要输入deck用户密码，steamos升级系统后需要重新安装】",
+    "key":"sshd_installer.sh",
+    "install_way":"LINUX_SCRIPT",
+    "test_command":"ps -ef | grep sshd | grep -v grep | wc -l",
+    "test_installed_condition":"GT_ZERO"
   }],
   "windows_app": [{
     "name":"CheatEngine",
-    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "icon":"images/compression.png",
     "url":"https://url49.ctfile.com/f/32910349-802603653-be86f5?p=2419",
     "introduce":"CheatEngine修改器6.7 (下载访问密码: 2419)",
     "key":"CheatEngine",
     "install_way":"ARCHIVE_DECOMPRESSION"
   },{
     "name":"FLiNGTrainer",
-    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "icon":"images/compression.png",
     "url":"https://url49.ctfile.com/f/32910349-802603630-6201ca?p=2419",
     "introduce":"风灵月影修改器 (下载访问密码: 2419)",
     "key":"FLiNGTrainer",

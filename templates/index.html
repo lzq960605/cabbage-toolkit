@@ -264,9 +264,15 @@
                       </el-table-column>
                       <el-table-column align="center" label="操作" min-width="340">
                           <template slot-scope="scope">
-                              <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
-                              <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
-                              <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                              <template v-if="scope.row.install_way=='ARCHIVE_DECOMPRESSION'">
+                                  <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
+                                  <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
+                                  <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                              </template>
+                              <template v-if="scope.row.install_way=='LINUX_SCRIPT'">
+                                  <el-button size="mini" type="danger" @click="onSystemToolsInstall(scope.$index, scope.row)">安装</el-button>
+                                  <el-button size="mini" @click="onSystemToolsStatus(scope.$index, scope.row)">软件状态</el-button>
+                              </template>
                           </template>
                       </el-table-column>
                   </el-table>
@@ -375,10 +381,13 @@
       });
     }
 
-    function apiErrorAndReturn(vue, resp) {
+    function apiErrorAndReturn(vue, resp, ignoreError) {
       if(resp.data.code !==0 || (resp.data.data && resp.data.data.hasOwnProperty('cmdCode') && resp.data.data.cmdCode !== 0)){
         const errMsg = (resp.data.data && resp.data.data.hasOwnProperty('errMsg')) ? resp.data.data.errMsg : resp.data.msg;
-        vue.$message.error(errMsg);
+        const ignore = ignoreError || false;
+        if(!ignore){
+            vue.$message.error(errMsg);
+        }
         return true;
       }
       return false;
@@ -447,31 +456,8 @@
                   "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
               },
               "user_home_path": "/home/deck",
-
-              "necessary_tools": [{
-                  "name":'GE-Proton7-48',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'这是一个很好的软件',
-                  "key":'GE-Proton7-48',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              }],
-
-              "windows_app": [{
-                  "name":'CheatEngine',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'CheatEngine修改器',
-                  "key":'CheatEngine',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              },{
-                  "name":'FLiNGTrainer',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'风灵月影修改器',
-                  "key":'FLiNGTrainer',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              }],
+              "necessary_tools": [],
+              "windows_app": [],
           },
 
           windowsAppListData: [],
@@ -589,7 +575,7 @@
           }
           // 先选择exe, 再打开
           commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-            if(apiErrorAndReturn(this, resp)){
+            if(apiErrorAndReturn(this, resp, true)){
               return;
             }
             let path = resp.data.data.result;
@@ -842,11 +828,11 @@
                 return;
             }
             if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
                 return;
             }
             commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-            if(apiErrorAndReturn(this, resp)){
+            if(apiErrorAndReturn(this, resp, true)){
              // 不选择任何东西, 就清除设置
               this.$alert('取消游戏运行时启动附件应用', '是否取消', {
                 confirmButtonText: '确定',
@@ -887,7 +873,7 @@
                 return;
             }
             if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
                 return;
             }
           if(this.geGameOptionConf['WINE_TASKMGR'] == '0'){
@@ -910,7 +896,7 @@
               return;
           }
           if(this.currentGeProton.version === '1.0.0'){
-              this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+              this.$message.warning('兼容层补丁版本太低，请重新打补丁');
               return;
           }
           const cheatAppPath = (cheatTools == 'CheatEngine') ?  `${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}/CheatEngine/CheatEngine.exe` :
@@ -1077,7 +1063,7 @@
                     spinner: 'el-icon-loading',
                     background: 'rgba(0, 0, 0, 0.7)'
                 });
-                // 解压压缩包方式安装(使用异步任务)
+                // 解压压缩包方式安装(使用同步任务)
                 commandRequest('GAME_SETTING', 'untar_huge_file', {
                     src: srcPath,
                     dst: dstPath,
@@ -1097,7 +1083,120 @@
                 this.$message.error(e.message);
             });
         },
+        onSystemToolsInstall(index, row){
+          this.onConfirmInstallSystemToolsScript(row, (installed)=>{
+              if(installed){
+                  this.$message.success("该工具已安装");
+                  return;
+              }
+              // 启动安装脚本
+              commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
+                  script_file: row.key,
+                  need_sudo: 0,
+              }).then((resp)=>{
+                  if(apiErrorAndReturn(this, resp)){
+                      // 没有设置deck密码
+                      if(resp.data.code == 10){
+                          setTimeout(()=>{
+                              this.$message.success("请先设置【deck用户密码】，并牢记你的密码");
+                              commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
+                                  script_file: 'passwd_new_set.sh',
+                                  need_sudo: 0,
+                              }).then((resp)=>{
+                                  if(apiErrorAndReturn(this, resp)){
+                                      return;
+                                  }
+                                  this.$message.success("密码设置成功");
+                              }).catch((e)=>{
+                              });
+                          }, 2000);
+                      }
+                      return;
+                  }
+                  const result = resp.data.data.result;
+                  this.$message.success("安装成功");
+              }).catch((e)=>{
+                  console.error(e);
+              });
+          })
+        },
+        // 显示一个软件简要信息(运行状态，附加信息)的对话框
+        onSystemToolsStatus(index, row){
+            this.onConfirmInstallSystemToolsScript(row, (installed)=> {
+                const statusText= installed ? '已安装' : '未安装';
+                if(row.key === 'system_font_installer.sh'){
+                    let content = `<strong>状态: ${statusText}</strong>`;
+                    content += `<br/>`;
+                    content += `<br/><strong>使用方式:</strong>`;
+                    // content += `<hr/>`;
+                    content += `<br/>请在"游戏"->"属性"->"启动选项"中:<br/>添加LANG=zh_CN.utf8 %command% 启用简体语言环境;<br/>添加LANG=zh_HK.utf8 %command% 启用繁体语言环境;`;
+                    content += `<br/><img style="width:380px;border:none;" src="helper_images/help_system_font_installer_p1.png">`;
+                    this.$alert(content, '软件信息', {
+                        dangerouslyUseHTMLString: true
+                    });
+                }
+                if(row.key === 'sshd_installer.sh'){
+                    const get_ip_command = "ip addr | grep -o -E \"inet [0-9.]+\" | grep -v 127.0.0.1 | awk '{print $2}'";
+                    // const get_ip_command = "ipconfig | grep  -o -E \" [0-9.]+\" | grep 1"; // test in windows
+                    commandRequest('GAME_SETTING', 'runShellCommand', {
+                        command: get_ip_command
+                    }).then((resp)=>{
+                        if(apiErrorAndReturn(this, resp)){
+                            return;
+                        }
+                        let content = `<strong>状态: ${statusText}</strong>`;
+                        // 附加连接信息
+                        if(installed){
+                            content += `<br/>`;
+                            content += `<br/><strong>使用WinSCP, MobaXterm等软件填写以下的信息即可连接:</strong>`;
+                            content += `<hr/>`;
+                            const result = resp.data.data.result;
+                            const ipAddr = result.trim() ? `ip地址(主机名):${result.trim()}` : `ip地址(主机名):桌面模式下查看右下角的连接信息`;
+                            content += `<br/><strong>${ipAddr}</strong>`;
+                            content += `<br/><strong>端口: 22</strong>`;
+                            content += `<br/><strong>用户名: deck</strong>`;
+                            content += `<br/><strong>密码: 【deck用户密码】</strong>`;
+                        }
+                        console.log(content);
+                        this.$alert(content, '软件信息', {
+                            dangerouslyUseHTMLString: true
+                        });
+                    }).catch((e)=>{
+                        console.error(e);
+                    });
+                }
+            });
 
+
+
+
+        },
+        // 判断系统是否已安装对应linux脚本
+        onConfirmInstallSystemToolsScript(tools, cbFunc){
+            if(!tools.test_command || !tools.test_installed_condition){
+                console.error("test_command or test_installed_condition not defined!");
+                return false
+            }
+            commandRequest('GAME_SETTING', 'runShellCommand', {
+                command: tools.test_command
+            }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                const result = resp.data.data.result;
+                let installed = false;
+                if(tools.test_installed_condition == 'GT_ZERO'){
+                    if(parseInt(result.trim()) > 0){
+                        installed = true
+                    }
+                }
+                if(typeof cbFunc ==='function'){
+                    cbFunc(installed)
+                }
+            }).catch((e)=>{
+                console.error(e);
+            });
+        },
 
 
         onChangeWindows:function () {

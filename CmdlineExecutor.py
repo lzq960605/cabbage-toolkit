@@ -7,8 +7,8 @@ from app_const import APP_WINDOWS_CACHE_PATH
 from dev_mock import WINDOWS_MOCK
 
 CMD_WAIT_EXIT_COMMAND = """
-\n echo "Ready to exit in 3 second."
-\n sleep 3
+\necho "Ready to exit in 3 second."
+\nsleep 3
 """
 
 class CmdlineExecutor(object):
@@ -93,6 +93,20 @@ class CmdlineExecutor(object):
             print("error line:{}".format(e.__traceback__.tb_lineno))
         finally:
             os.remove(tmp_cmd_file_path)
+        return {
+            "cmdCode": cmdCode,
+            "result": self._byte_decode(msg).strip(),
+            "errMsg": self._byte_decode(errMsg).strip()
+        }
+
+
+    # 启动一个终端窗口，在终端窗口中执行脚本文件
+    def exec_script_with_new_terminal(self, script_file):
+        if not os.path.exists(script_file):
+            raise Exception("脚本文件:" + script_file + " 不存在")
+        terminal_provider = self._get_terminal_provider()
+        cmdline = "{} {}".format(terminal_provider, script_file)
+        msg, errMsg, cmdCode = self._launch_subprocess_cmd(cmdline)
         return {
             "cmdCode": cmdCode,
             "result": self._byte_decode(msg).strip(),
