@@ -1092,7 +1092,7 @@
               // 启动安装脚本
               commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
                   script_file: row.key,
-                  need_sudo: 1,
+                  need_sudo: 0,
               }).then((resp)=>{
                   if(apiErrorAndReturn(this, resp)){
                       // 没有设置deck密码
