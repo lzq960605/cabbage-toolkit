@@ -1119,16 +1119,54 @@
         },
         // 显示一个软件简要信息(运行状态，附加信息)的对话框
         onSystemToolsStatus(index, row){
-            let content = '';
-            if(row.key === 'system_font_installer.sh'){
-
-            }
-            if(row.key === 'sshd_installer.sh'){
-
-            }
-            this.$alert('<strong>这是 <i>HTML</i> 片段</strong>', '软件状态', {
-                dangerouslyUseHTMLString: true
+            this.onConfirmInstallSystemToolsScript(row, (installed)=> {
+                const statusText= installed ? '已安装' : '未安装';
+                if(row.key === 'system_font_installer.sh'){
+                    let content = `<strong>状态: ${statusText}</strong>`;
+                    content += `<br/>`;
+                    content += `<br/><strong>使用方式:</strong>`;
+                    // content += `<hr/>`;
+                    content += `<br/>请在"游戏"->"属性"->"启动选项"中:<br/>添加LANG=zh_CN.utf8 %command% 启用简体语言环境;<br/>添加LANG=zh_HK.utf8 %command% 启用繁体语言环境;`;
+                    content += `<br/><img style="width:380px;border:none;" src="helper_images/help_system_font_installer_p1.png">`;
+                    this.$alert(content, '软件信息', {
+                        dangerouslyUseHTMLString: true
+                    });
+                }
+                if(row.key === 'sshd_installer.sh'){
+                    const get_ip_command = "ip addr | grep -o -E \"inet [0-9.]+\" | grep -v 127.0.0.1 | awk '{print $2}'";
+                    // const get_ip_command = "ipconfig | grep  -o -E \" [0-9.]+\" | grep 1"; // test in windows
+                    commandRequest('GAME_SETTING', 'runShellCommand', {
+                        command: get_ip_command
+                    }).then((resp)=>{
+                        if(apiErrorAndReturn(this, resp)){
+                            return;
+                        }
+                        let content = `<strong>状态: ${statusText}</strong>`;
+                        // 附加连接信息
+                        if(installed){
+                            content += `<br/>`;
+                            content += `<br/><strong>使用WinSCP, MobaXterm等软件填写以下的信息即可连接:</strong>`;
+                            content += `<hr/>`;
+                            const result = resp.data.data.result;
+                            const ipAddr = result.trim() ? `ip地址(主机名):${result.trim()}` : `ip地址(主机名):桌面模式下查看右下角的连接信息`;
+                            content += `<br/><strong>${ipAddr}</strong>`;
+                            content += `<br/><strong>端口: 22</strong>`;
+                            content += `<br/><strong>用户名: deck</strong>`;
+                            content += `<br/><strong>密码: 填写deck的用户密码</strong>`;
+                        }
+                        console.log(content);
+                        this.$alert(content, '软件信息', {
+                            dangerouslyUseHTMLString: true
+                        });
+                    }).catch((e)=>{
+                        console.error(e);
+                    });
+                }
             });
+
+
+
+
         },
         // 判断系统是否已安装对应linux脚本
         onConfirmInstallSystemToolsScript(tools, cbFunc){
