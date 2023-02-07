@@ -381,10 +381,13 @@
       });
     }
 
-    function apiErrorAndReturn(vue, resp) {
+    function apiErrorAndReturn(vue, resp, ignoreError) {
       if(resp.data.code !==0 || (resp.data.data && resp.data.data.hasOwnProperty('cmdCode') && resp.data.data.cmdCode !== 0)){
         const errMsg = (resp.data.data && resp.data.data.hasOwnProperty('errMsg')) ? resp.data.data.errMsg : resp.data.msg;
-        vue.$message.error(errMsg);
+        const ignore = ignoreError || false;
+        if(!ignore){
+            vue.$message.error(errMsg);
+        }
         return true;
       }
       return false;
@@ -572,7 +575,7 @@
           }
           // 先选择exe, 再打开
           commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-            if(apiErrorAndReturn(this, resp)){
+            if(apiErrorAndReturn(this, resp, true)){
               return;
             }
             let path = resp.data.data.result;
@@ -825,11 +828,11 @@
                 return;
             }
             if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
                 return;
             }
             commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-            if(apiErrorAndReturn(this, resp)){
+            if(apiErrorAndReturn(this, resp, true)){
              // 不选择任何东西, 就清除设置
               this.$alert('取消游戏运行时启动附件应用', '是否取消', {
                 confirmButtonText: '确定',
@@ -870,7 +873,7 @@
                 return;
             }
             if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
                 return;
             }
           if(this.geGameOptionConf['WINE_TASKMGR'] == '0'){
@@ -893,7 +896,7 @@
               return;
           }
           if(this.currentGeProton.version === '1.0.0'){
-              this.$message.warning('兼容层补丁版本太低，请重现打补丁');
+              this.$message.warning('兼容层补丁版本太低，请重新打补丁');
               return;
           }
           const cheatAppPath = (cheatTools == 'CheatEngine') ?  `${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}/CheatEngine/CheatEngine.exe` :
