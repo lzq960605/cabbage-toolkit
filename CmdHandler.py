@@ -174,7 +174,7 @@ class CmdHandler(object):
         if need_sudo == 1:
             self.checkDeckUserPasswordSet()
         script_file = self.params['script_file']
-        script_file_path = os.path.join(get_user_homepath(), APP_HOME_PATH, "system_tools_script", script_file)
+        script_file_path = os.path.join(get_user_homepath(), APP_PROGRAM_PATH, "system_tools_script", script_file)
         executor = CmdlineExecutor("")
         return executor.exec_script_with_new_terminal(script_file_path)
 

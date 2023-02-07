@@ -18,7 +18,7 @@
     "install_way":"ARCHIVE_DECOMPRESSION"
   },{
     "name":"安装系统简繁体字库",
-    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "icon":"https://s1.51cto.com/images/20180323/1521773173496201.png",
     "url":"",
     "introduce":"使用locale-gen命令在linux系统安装简繁体字库，可解决部分老游戏的乱码问题，如《仙剑3》《仙剑4》《新绝代双骄》等。【需要输入deck用户密码，steamos升级系统后需要重新安装】",
     "key":"system_font_installer.sh",
@@ -27,7 +27,7 @@
     "test_installed_condition":"GT_ZERO"
   },{
     "name":"安装sshd服务端",
-    "icon":"https://www.32r.com/logo/220107/202201071446475058.png",
+    "icon":"https://s1.51cto.com/images/20180323/1521773173496201.png",
     "url":"",
     "introduce":"使用pacman安装sshd服务端，并设置开机启动。客户端可用winscp，MobaXterm等工具使用sftp协议传文件，也可用ssh协议远程执行命令。【需要输入deck用户密码，steamos升级系统后需要重新安装】",
     "key":"sshd_installer.sh",

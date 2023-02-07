@@ -263,14 +263,16 @@
                           </template>
                       </el-table-column>
                       <el-table-column align="center" label="操作" min-width="340">
-                          <template slot-scope="scope" v-if="scope.row.install_way=='ARCHIVE_DECOMPRESSION'">
-                              <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
-                              <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
-                              <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
-                          </template>
-                          <template slot-scope="scope" v-if="scope.row.install_way=='LINUX_SCRIPT'">
-                              <el-button size="mini" type="danger" @click="onSystemToolsInstall(scope.$index, scope.row)">安装</el-button>
-                              <el-button size="mini" @click="onSystemToolsStatus(scope.$index, scope.row)">软件状态</el-button>
+                          <template slot-scope="scope">
+                              <template v-if="scope.row.install_way=='ARCHIVE_DECOMPRESSION'">
+                                  <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
+                                  <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
+                                  <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                              </template>
+                              <template v-if="scope.row.install_way=='LINUX_SCRIPT'">
+                                  <el-button size="mini" type="danger" @click="onSystemToolsInstall(scope.$index, scope.row)">安装</el-button>
+                                  <el-button size="mini" @click="onSystemToolsStatus(scope.$index, scope.row)">软件状态</el-button>
+                              </template>
                           </template>
                       </el-table-column>
                   </el-table>
@@ -1086,9 +1088,28 @@
               }
               // 启动安装脚本
               commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
-                  command: row.key,
+                  script_file: row.key,
                   need_sudo: 1,
               }).then((resp)=>{
+                  if(apiErrorAndReturn(this, resp)){
+                      // 没有设置deck密码
+                      if(resp.data.code == 10){
+                          setTimeout(()=>{
+                              this.$message.success("请先设置【deck用户密码】，并牢记你的密码");
+                              commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
+                                  script_file: 'passwd_new_set.sh',
+                                  need_sudo: 0,
+                              }).then((resp)=>{
+                                  if(apiErrorAndReturn(this, resp)){
+                                      return;
+                                  }
+                                  this.$message.success("密码设置成功");
+                              }).catch((e)=>{
+                              });
+                          }, 2000);
+                      }
+                      return;
+                  }
                   const result = resp.data.data.result;
                   this.$message.success("安装成功");
               }).catch((e)=>{
@@ -1118,6 +1139,9 @@
             commandRequest('GAME_SETTING', 'runShellCommand', {
                 command: tools.test_command
             }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
                 const result = resp.data.data.result;
                 let installed = false;
                 if(tools.test_installed_condition == 'GT_ZERO'){
