@@ -6,6 +6,8 @@ import time
 from queue import Queue
 from threading import Thread
 
+from CmdlineExecutor import CmdlineExecutor
+from ServiceException import SERVICE_EXCEPTION_USER_PASSWORD_NOT_SET, ServiceException
 from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
@@ -33,7 +35,7 @@ RUN_NATIVE_FILE_SELECTOR = "FILE=`zenity --file-selection --title=\"选择文件
 RUN_MAKE_GE_PROTON_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s patch {}"
 RUN_MAKE_GE_PROTON_REVERT_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s revert {}"
 RUN_GET_ONLINE_VERSION_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/feature_v1.1.0/app_const.py | grep APP_VERSION | awk -F '=' '{print $2}'"
-RUN_GET_ONLINE_SETTING_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/feature_v1.1.0/app_center_setting.json"
+RUN_GET_ONLINE_SETTING_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/app_center_setting.json"
 RUN_CLONE_NEWEST_CODE_CMDLINE = "git clone https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git  {}"
 
 async_task_result = Queue()
@@ -51,6 +53,13 @@ class CmdHandler(object):
         data = None
         try:
             data = getattr(self, self.command)()
+        except ServiceException as se:
+            print('service exception:', se)
+            data = {
+                "cmdCode": se.code,
+                "errMsg": se.msg,
+                "result": None,
+            }
         except Exception as e:
             print('invoke method error:', e)
             data = {
@@ -77,6 +86,10 @@ class CmdHandler(object):
                 data = getattr(self, self.command)()
             else:
                 Thread(target=self._async_task_handler).start()
+        except ServiceException as se:
+            print('service exception:', se)
+            errmsg = se.msg
+            code = se.code
         except Exception as e:
             print('invoke method error:', e)
             errmsg = str(e)
@@ -154,6 +167,30 @@ class CmdHandler(object):
 
     def checkProtontricksInstalled(self):
         return is_protontricks_installed()
+
+
+    def runLocalScriptWithTerminal(self):
+        need_sudo = self.params['need_sudo']
+        if need_sudo == 1:
+            self.checkDeckUserPasswordSet()
+        script_file = self.params['script_file']
+        script_file_path = os.path.join(get_user_homepath(), APP_HOME_PATH, "system_tools_script", script_file)
+        executor = CmdlineExecutor("")
+        return executor.exec_script_with_new_terminal(script_file_path)
+
+
+    def checkDeckUserPasswordSet(self):
+        command = "passwd  --status $USER | awk '{print $2}'"
+        executor = CmdlineExecutor(command)
+        resp = executor.exec_with_popen()
+        if resp['cmdCode'] == 0:
+            if resp['result'].strip() != 'P':
+                raise ServiceException(SERVICE_EXCEPTION_USER_PASSWORD_NOT_SET)
+
+    def runShellCommand(self):
+        command = self.params['command']
+        executor = CmdlineExecutor(command)
+        return executor.exec_with_popen()
 
     def gameList(self):
         dict_data = runShellCommand(get_protontricks_provider() + " -l")

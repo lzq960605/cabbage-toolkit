@@ -263,10 +263,14 @@
                           </template>
                       </el-table-column>
                       <el-table-column align="center" label="操作" min-width="340">
-                          <template slot-scope="scope">
+                          <template slot-scope="scope" v-if="scope.row.install_way=='ARCHIVE_DECOMPRESSION'">
                               <el-button size="mini" type="danger" @click="onSystemToolsDownload(scope.$index, scope.row)">下载</el-button>
                               <el-button size="mini" @click="onArchiveInstallFromDownloadPath(scope.$index, scope.row, 1)">从下载目录安装</el-button>
                               <el-button size="mini"  @click="onSystemToolsShowPath(scope.$index, scope.row)">打开安装目录</el-button>
+                          </template>
+                          <template slot-scope="scope" v-if="scope.row.install_way=='LINUX_SCRIPT'">
+                              <el-button size="mini" type="danger" @click="onSystemToolsInstall(scope.$index, scope.row)">安装</el-button>
+                              <el-button size="mini" @click="onSystemToolsStatus(scope.$index, scope.row)">软件状态</el-button>
                           </template>
                       </el-table-column>
                   </el-table>
@@ -447,31 +451,8 @@
                   "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
               },
               "user_home_path": "/home/deck",
-
-              "necessary_tools": [{
-                  "name":'GE-Proton7-48',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'这是一个很好的软件',
-                  "key":'GE-Proton7-48',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              }],
-
-              "windows_app": [{
-                  "name":'CheatEngine',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'CheatEngine修改器',
-                  "key":'CheatEngine',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              },{
-                  "name":'FLiNGTrainer',
-                  "icon":'http://img.mp.itc.cn/upload/20160602/00a152cf03b043d4baa43ee5af085f9e_th.jpg',
-                  "url":'https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-48',
-                  "introduce":'风灵月影修改器',
-                  "key":'FLiNGTrainer',
-                  "install_way":'ARCHIVE_DECOMPRESSION',
-              }],
+              "necessary_tools": [],
+              "windows_app": [],
           },
 
           windowsAppListData: [],
@@ -1077,7 +1058,7 @@
                     spinner: 'el-icon-loading',
                     background: 'rgba(0, 0, 0, 0.7)'
                 });
-                // 解压压缩包方式安装(使用异步任务)
+                // 解压压缩包方式安装(使用同步任务)
                 commandRequest('GAME_SETTING', 'untar_huge_file', {
                     src: srcPath,
                     dst: dstPath,
@@ -1097,7 +1078,60 @@
                 this.$message.error(e.message);
             });
         },
+        onSystemToolsInstall(index, row){
+          this.onConfirmInstallSystemToolsScript(row, (installed)=>{
+              if(installed){
+                  this.$message.success("该工具已安装");
+                  return;
+              }
+              // 启动安装脚本
+              commandRequest('GAME_SETTING', 'runLocalScriptWithTerminal', {
+                  command: row.key,
+                  need_sudo: 1,
+              }).then((resp)=>{
+                  const result = resp.data.data.result;
+                  this.$message.success("安装成功");
+              }).catch((e)=>{
+                  console.error(e);
+              });
+          })
+        },
+        // 显示一个软件简要信息(运行状态，附加信息)的对话框
+        onSystemToolsStatus(index, row){
+            let content = '';
+            if(row.key === 'system_font_installer.sh'){
 
+            }
+            if(row.key === 'sshd_installer.sh'){
+
+            }
+            this.$alert('<strong>这是 <i>HTML</i> 片段</strong>', '软件状态', {
+                dangerouslyUseHTMLString: true
+            });
+        },
+        // 判断系统是否已安装对应linux脚本
+        onConfirmInstallSystemToolsScript(tools, cbFunc){
+            if(!tools.test_command || !tools.test_installed_condition){
+                console.error("test_command or test_installed_condition not defined!");
+                return false
+            }
+            commandRequest('GAME_SETTING', 'runShellCommand', {
+                command: tools.test_command
+            }).then((resp)=>{
+                const result = resp.data.data.result;
+                let installed = false;
+                if(tools.test_installed_condition == 'GT_ZERO'){
+                    if(parseInt(result.trim()) > 0){
+                        installed = true
+                    }
+                }
+                if(typeof cbFunc ==='function'){
+                    cbFunc(installed)
+                }
+            }).catch((e)=>{
+                console.error(e);
+            });
+        },
 
 
         onChangeWindows:function () {
