@@ -1,10 +1,20 @@
-# proton-toolkit
+# cabbage-toolkit
 
 #### 介绍
-封装protontricks使用与GE-Proton打exe补丁的工具集合软件，提供友好，汉化的用户界面
+这个一个主要在steamdeck上使用的工具集合，该软件封装了protontricks使用与GE-Proton打exe补丁的工具集合软件，提供友好，汉化的用户界面
 
 #### 软件架构
-软件架构说明
+1. 软件界面使用vue+element-UI开发;
+
+2. 服务器端运行steamdeck上，使用了python轻量级单线程web服务器bottle;
+
+3. 以新开进程的方式调用了python3启动的protontricks;(GPLv3).
+
+
+
+![image-20230208100822514](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208100822514.png)
+
+
 
 
 #### 安装教程
@@ -17,11 +27,25 @@ curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/insta
 
 
 
-#### 使用说明
+#### 功能介绍
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.  给游戏打补丁，windows的常用功能
+2.  给兼容层打多开exe补丁。
+3.  软件中心(兼容层下载，常用工具，windows软件)
+
+
+
+![image-20230208094736162](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094736162.png)
+
+
+
+![image-20230208094827350](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094827350.png)
+
+
+
+![image-20230208094921829](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094921829.png)
+
+
 
 #### 参与贡献
 
@@ -30,12 +54,3 @@ curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/insta
 3.  提交代码
 4.  新建 Pull Request
 
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
