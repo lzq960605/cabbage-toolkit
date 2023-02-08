@@ -12,7 +12,7 @@
 
 
 
-![image-20230208100822514](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208100822514.png)
+![image-20230208100822514](./readme_pics/image-20230208100822514.png)
 
 
 
@@ -35,15 +35,15 @@ curl -s https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit/raw/master/insta
 
 
 
-![image-20230208094736162](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094736162.png)
+![image-20230208094736162](./readme_pics/image-20230208094736162.png)
 
 
 
-![image-20230208094827350](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094827350.png)
+![image-20230208094827350](./readme_pics/image-20230208094827350.png)
 
 
 
-![image-20230208094921829](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230208094921829.png)
+![image-20230208094921829](./readme_pics/image-20230208094921829.png)
 
 
 
