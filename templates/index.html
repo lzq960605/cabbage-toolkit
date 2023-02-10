@@ -920,6 +920,9 @@
                        this.geGameOptionConf['WINE_FLINGTRAINER'] = 0;
                        this.geGameOptionConf['WINE_EXTRA_EXE'] = cheatAppPath;
                    }
+                   else {
+                       this.geGameOptionConf['WINE_EXTRA_EXE'] = '';
+                   }
                    this.updateGeProtonGameConf({WINE_CHEATENGINE:this.geGameOptionConf['WINE_CHEATENGINE'], WINE_FLINGTRAINER:this.geGameOptionConf['WINE_FLINGTRAINER'], WINE_EXTRA_EXE:this.geGameOptionConf['WINE_EXTRA_EXE']});
                }
                else {
@@ -927,6 +930,9 @@
                    if(this.geGameOptionConf['WINE_FLINGTRAINER'] == '1'){
                        this.geGameOptionConf['WINE_CHEATENGINE'] = 0;
                        this.geGameOptionConf['WINE_EXTRA_EXE'] = cheatAppPath;
+                   }
+                   else {
+                       this.geGameOptionConf['WINE_EXTRA_EXE'] = '';
                    }
                    this.updateGeProtonGameConf({WINE_CHEATENGINE:this.geGameOptionConf['WINE_CHEATENGINE'], WINE_FLINGTRAINER:this.geGameOptionConf['WINE_FLINGTRAINER'], WINE_EXTRA_EXE:this.geGameOptionConf['WINE_EXTRA_EXE']});
                }

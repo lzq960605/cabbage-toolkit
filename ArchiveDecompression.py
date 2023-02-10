@@ -81,7 +81,7 @@ class ArchiveDecompression(object):
             if resp['cmdCode'] != 0:
                 raise Exception(resp['errMsg'])
 
-
+        # 对在windows端压缩的zip包中文文件名乱码的解决方案: print("╒Γ╩╟CheatEngine6.7╨▐╕─╞≈.txt".encode("cp437").decode('gbk'))
         if self.is_zip_compression(self.target_file):
             zfile = zipfile.ZipFile(self.target_file, 'r')
             zfile.extractall(path = target_path)
