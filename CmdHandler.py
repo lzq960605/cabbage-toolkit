@@ -118,7 +118,7 @@ class CmdHandler(object):
         if ctl == 'copy':
             return {
                 "cmdCode": 0,
-                "result": io_ctl_copy(self.params['src']),
+                "result": io_ctl_copy(self.params['src'], self.params['dst']),
                 "errMsg": "",
             }
         if ctl == 'move':

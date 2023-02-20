@@ -35,6 +35,12 @@ def runShellCommand(cmdline):
     }
 
 
+def showNativeAlert(message):
+    # 检测到您未安装firefox浏览器, 请在discover商店上搜索安装吗，安装后重新打开应用
+    cmd = "zenity  --warning --text=\"{}\"".format(message)
+    runShellCommand(cmd)
+
+
 def launch_subprocess_cmd(command_to_lunch, cwd=None, raise_errors=False):
     """
     for a given command line will lunch that as a subprocess
@@ -72,11 +78,16 @@ def get_system_folder_opener():
     return None
 
 
-
 def is_protontricks_installed():
     cmd = "flatpak list | grep protontricks | wc -l"
     result = os.popen(cmd).read()
-    return result.strip() == "1"
+    return result.strip() != "0"
+
+
+def is_firefox_installed():
+    cmd = "flatpak list | grep firefox | wc -l"
+    result = os.popen(cmd).read()
+    return result.strip() != "0"
 
 
 def create_app_default_path():
@@ -114,8 +125,9 @@ def get_protontricks_provider():
 
 def untar_file_to_path(zip_file, target_path):
     t = tarfile.open(zip_file)
-    t.extractall(path = target_path)
+    t.extractall(path=target_path)
     t.close()
+
 
 # 解压zip文件, zip_file: 源文件  target_path:目标文件
 def unzip_file_to_path(zip_file, target_path):
@@ -124,6 +136,7 @@ def unzip_file_to_path(zip_file, target_path):
         zfile.extract(file, target_path)
 
     zfile.close()
+
 
 # 解压文件到指定目录
 def decompression_file_to(target_file, target_path):

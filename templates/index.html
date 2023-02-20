@@ -632,8 +632,9 @@
             this.$message.warning('请先选择游戏');
             return;
           }
-          // 学习版游戏C盘仅仅会安装在内部存储上
-          if(storageDialogTarget === 'openDiskC_Path' && this.currentGame.nonSteam === 1){
+          // 正版和学习版游戏C盘仅仅会安装在内部存储上
+          // if(storageDialogTarget === 'openDiskC_Path' && this.currentGame.nonSteam === 1){
+          if(storageDialogTarget === 'openDiskC_Path'){
               this.onOpenDiskC_Path('INTERNAL_STORAGE');
               return;
           }

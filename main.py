@@ -7,7 +7,8 @@ from threading import Thread
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
-from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand
+from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand, \
+    showNativeAlert, is_firefox_installed
 
 api_ticket = LifoQueue()
 
@@ -101,6 +102,11 @@ def open_browser_with_url():
 if __name__ == '__main__':
     # main()
     create_app_default_path()
+    plat = platform.system().lower()
+    if plat == 'linux' and not is_firefox_installed():
+        showNativeAlert("检测到您未安装firefox浏览器, 请在discover商店上搜索并安装，安装后重新打开应用")
+        exit(0)
+
     Thread(target=open_browser_with_url).start()
     run(server=server)
     print("cabbage-toolkit exit.")
