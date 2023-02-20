@@ -3,6 +3,7 @@ import platform
 import subprocess
 import tarfile
 import zipfile
+from os.path import join, getsize
 
 from ArchiveDecompression import ArchiveDecompression
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
@@ -142,3 +143,24 @@ def unzip_file_to_path(zip_file, target_path):
 def decompression_file_to(target_file, target_path):
     f = ArchiveDecompression(target_file)
     f.decompression_to(target_path)
+
+
+# dir = 'C:\\Program Files (x86)'
+def get_dir_size(target_dir):
+    '''
+    :brief:获取该目录的大小
+    :param dir: 文件夹目录
+    :return:改文件夹的大小：MB
+    '''
+    size = 0
+    # 遍历该文件夹下的文件并计算大小
+    for root, dirs, files in os.walk(target_dir):
+        size += sum([getsize(join(root, name)) for name in files])
+    return size / 1024 / 1024
+
+def get_real_path(target_path):
+    if os.path.islink(target_path):
+        return os.path.realpath(target_path)
+
+    return target_path
+

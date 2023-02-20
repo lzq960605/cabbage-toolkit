@@ -243,7 +243,7 @@
           </div>
         </el-aside>
       </el-container>
-
+      <!-- 软件中心 -->
       <el-container  v-if="main_windows=='3'">
           <div style="display: flex; flex-direction: column">
               <!-- type="border-card"  -->
@@ -308,7 +308,111 @@
           </div>
 
       </el-container>
+      <!-- 缓存清理 -->
+      <el-container  v-if="main_windows=='4'">
+            <div style="display: flex; flex-direction: column">
+                <!-- type="border-card"  -->
+                <el-tabs tab-position="left" style="width: 100%">
+                    <div style="margin-top: 10px;margin-bottom: 10px;">
+                        <el-checkbox v-model="shaderOnlyDeleted">仅显示已删除的游戏</el-checkbox>
+                    </div>
+                    <el-tab-pane label="着色器缓存">
+                        <!--列表-->
+                        <el-table
+                                ref="multipleTable"
+                                size="small"
+                                :data="gameCache.shaderCache" highlight-current-row border
+                                tooltip-effect="dark"
+                                style="width: 100%"
+                                @selection-change="handleSelectionChange">
+                            <el-table-column
+                                    type="selection"
+                                    width="55">
+                            </el-table-column>
+                            <el-table-column
+                                    label="大小(MB)"
+                                    width="80">
+                                <template slot-scope="scope">{{ scope.row.size }}</template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="gameId"
+                                    label="游戏ID"
+                                    width="100">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="gameName"
+                                    label="游戏名称"
+                                    width="120">
+                            </el-table-column>
+                            <el-table-column
+                                    label="类型"
+                                    width="120">
+                                <template slot-scope="scope">{{ scope.row.nonSteam ? '非Steam游戏' : 'Steam游戏' }}</template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="path"
+                                    label="存储位置"
+                                    width="400">
+                            </el-table-column>
 
+                        </el-table>
+                        <div style="margin-top: 20px">
+                            <el-button @click="onConfirmCleanCache()">清除缓存</el-button>
+                        </div>
+
+                    </el-tab-pane>
+                    <el-tab-pane label="兼容层缓存">
+                        <!--列表-->
+                        <el-table
+                                ref="multipleTable"
+                                size="small"
+                                :data="gameCache.compatdata" highlight-current-row border
+                                tooltip-effect="dark"
+                                style="width: 100%"
+                                @selection-change="handleSelectionChange">
+                            <el-table-column
+                                    type="selection"
+                                    width="55">
+                            </el-table-column>
+                            <el-table-column
+                                    label="大小(MB)"
+                                    width="80">
+                                <template slot-scope="scope">{{ scope.row.size }}</template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="gameId"
+                                    label="游戏ID"
+                                    width="100">
+                            </el-table-column>
+                            <el-table-column
+                                    prop="gameName"
+                                    label="游戏名称"
+                                    width="120">
+                            </el-table-column>
+                            <el-table-column
+                                    label="类型"
+                                    width="120">
+                                <template slot-scope="scope">{{ scope.row.nonSteam ? '非Steam游戏' : 'Steam游戏' }}</template>
+                            </el-table-column>
+                            <el-table-column
+                                    prop="path"
+                                    label="存储位置"
+                                    width="400">
+                            </el-table-column>
+
+                        </el-table>
+                        <div style="margin-top: 20px">
+                            <el-button @click="onConfirmCleanCache()">清除缓存</el-button>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+                <div style="text-align: left;font-size: 10px;color: #777;">
+                    <p>Tips:</p>
+                    <p>1. 清理缓存文件可能带来风险，软件不对风险负责，后果请自行斟酌。</p>
+                </div>
+            </div>
+
+        </el-container>
       <el-footer></el-footer>
     </el-container>
 
@@ -410,6 +514,9 @@
           }, {
               value: '3',
               label: '软件中心'
+          }, {
+              value: '4',
+              label: '缓存清理'
           }],
           main_windows: '1',  // 1: GAME_SETTING, 2: PROTON_PATCH
 
@@ -461,6 +568,25 @@
           },
 
           windowsAppListData: [],
+          // 缓存列表
+          gameCache: {
+            "shaderCache":[{
+                size: '10',
+                gameId: '123456',
+                gameName: '王小虎',
+                nonSteam: '1',
+                path: '.local/share/Steam/steamapps/shadercache/123456'
+            }, {
+                size: '10',
+                gameId: '123456',
+                gameName: '王小虎',
+                nonSteam: '1',
+                path: '.local/share/Steam/steamapps/shadercache/123456'
+            }],
+            "compatdata":[],
+          },
+          multipleSelection: [],
+          shaderOnlyDeleted: true,
         }
       },
       methods: {
@@ -1204,7 +1330,13 @@
                 console.error(e);
             });
         },
+        onConfirmCleanCache(rows) {
+            console.log(`onConfirmCleanCache: ${JSON.stringify(this.multipleSelection)}`);
+        },
+        handleSelectionChange(val) {
+          this.multipleSelection = val;
 
+        },
 
         onChangeWindows:function () {
           if(this.main_windows === '1'){
