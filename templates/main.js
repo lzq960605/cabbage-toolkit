@@ -625,24 +625,27 @@ new Vue({
                     return;
                 }
                 // 解压压缩包方式安装(阻塞安装)
-                const loading = this.$loading({
-                    lock: true,
-                    text: '安装中',
-                    spinner: 'el-icon-loading',
-                    background: 'rgba(0, 0, 0, 0.7)'
-                });
+                // const loading = this.$loading({
+                //     lock: true,
+                //     text: '安装中',
+                //     spinner: 'el-icon-loading',
+                //     background: 'rgba(0, 0, 0, 0.7)'
+                // });
+                this.lockScreen(999, '安装中');
                 commandRequest('GAME_SETTING', 'ioCtl', {
                     ctl: 'decompress_to',
                     src: srcPath,
                     dst: dstPath,
                 }).then((resp)=>{
-                    loading.close();
+                    // loading.close();
+                    this.lockScreenClear();
                     if(apiErrorAndReturn(this, resp)){
                         return;
                     }
                     this.$alert(`安装软件${this.softwareInfo.name}到${dstPath}成功`);
                 }).catch((e)=>{
-                    loading.close();
+                    // loading.close();
+                    this.lockScreenClear();
                     console.error(e);
                     this.$message.error(e.message);
                 })
@@ -668,24 +671,27 @@ new Vue({
                     this.$alert(`目录:${dstPath}已安装了该软件`);
                     return;
                 }
-                const loading = this.$loading({
-                    lock: true,
-                    text: '安装中',
-                    spinner: 'el-icon-loading',
-                    background: 'rgba(0, 0, 0, 0.7)'
-                });
+                // const loading = this.$loading({
+                //     lock: true,
+                //     text: '安装中',
+                //     spinner: 'el-icon-loading',
+                //     background: 'rgba(0, 0, 0, 0.7)'
+                // });
+                this.lockScreen(999, '安装中');
                 // 解压压缩包方式安装(使用同步任务)
                 commandRequest('GAME_SETTING', 'untar_huge_file', {
                     src: srcPath,
                     dst: dstPath,
                 }).then((resp)=>{
-                    loading.close();
+                    // loading.close();
+                    this.lockScreenClear();
                     if(apiErrorAndReturn(this, resp)){
                         return;
                     }
                     this.$alert(`安装兼容层${this.softwareInfo.name}到${dstPath}成功`);
                 }).catch((e)=>{
-                    loading.close();
+                    this.lockScreenClear();
+                    // loading.close();
                     console.error(e);
                     this.$message.error(e.message);
                 })
