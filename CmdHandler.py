@@ -1,6 +1,7 @@
 import json
 import os
 import platform
+import re
 import shutil
 import time
 from queue import Queue
@@ -12,8 +13,8 @@ from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_D
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
 from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_ctl_del, io_ctl_decompress_to, \
-    io_ctl_decompression_to_with_system
-from steam import STEAM_COMPAT_TOOL_PATH
+    io_ctl_decompression_to_with_system, io_ctl_du_path
+from steam import STEAM_COMPAT_TOOL_PATH, STEAM_APP_SHADERCACHE_PATH, STEAM_APP_COMPAT_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
     launch_subprocess_cmd, get_protontricks_provider
 
@@ -199,6 +200,14 @@ class CmdHandler(object):
             dict_data['cmdCode'] = 0
 
         return dict_data
+
+    def gameListInfo(self):
+        dict_data = self.gameList()
+        reg = "(.* \([\d]{2,}\))"
+        gameList = re.findall(reg, dict_data['result'])
+        return gameList
+
+
 
     def geProtonList(self):
         command = "ls " + get_user_homepath() + "/" + STEAM_COMPAT_TOOL_PATH + \
@@ -432,5 +441,20 @@ class CmdHandler(object):
         return {
             "cmdCode": 0,
             "result": "",
+            "errMsg": "",
+        }
+
+    # 获取着色器缓存/兼容层缓存文件夹列表
+    def getCacheFolder(self):
+        shaderCacheFolder = get_user_homepath() + "/" + STEAM_APP_SHADERCACHE_PATH
+        compatdataFolder = get_user_homepath() + "/" + STEAM_APP_COMPAT_PATH
+        result = {
+            "shaderCache": io_ctl_du_path(shaderCacheFolder),
+            "compatdata": io_ctl_du_path(compatdataFolder),
+            "installed": self.gameListInfo()
+        }
+        return {
+            "cmdCode": 0,
+            "result": result,
             "errMsg": "",
         }

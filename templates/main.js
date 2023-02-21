@@ -808,6 +808,27 @@ new Vue({
         handleSelectionChange(val) {
             this.multipleSelection = val;
         },
+        onGetCacheFolder() {
+
+            // 获取游戏缓存数据(阻塞安装)
+            // const loading = this.$loading({
+            //     lock: true,
+            //     text: '正在计算缓存空间大小，请稍等...',
+            //     spinner: 'el-icon-loading',
+            //     background: 'rgba(0, 0, 0, 0.7)'
+            // });
+            // commandRequest('GAME_SETTING', 'getCacheFolder', {}).then((resp)=>{
+            //     loading.close();
+            //     if(apiErrorAndReturn(this, resp)){
+            //         return;
+            //     }
+            //     const result = resp.data.data.result;
+            //     console.log(`getCacheFolder: ${JSON.stringify(result)}`);
+            // }).catch((e)=>{
+            //     loading.close();
+            //     console.error(e);
+            // });
+        },
         onChangeWindows:function () {
             if(this.main_windows === '1'){
                 commandRequest('GAME_SETTING', 'gameList', {}).then((resp)=>{
@@ -862,6 +883,11 @@ new Vue({
                     this.$message.error(e.message);
                 })
             }
+            else if(this.main_windows === '4'){
+                this.onGetCacheFolder();
+            }
+
+
         }
     },
 
@@ -894,6 +920,14 @@ new Vue({
             });
         }, 30000);
         this.onGetAppSetting();
+        this.lockScreen();
+
+        this.$loading({
+            lock: true,
+            text: '处理中',
+            spinner: 'el-icon-loading',
+            background: 'rgba(0, 0, 0, 0.7)'
+        });
     },
     created: function() {
         window.onload = function () {

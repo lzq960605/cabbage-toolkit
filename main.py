@@ -11,6 +11,7 @@ from util import create_app_default_path, get_app_template_path, get_system_fold
     showNativeAlert, is_firefox_installed
 
 api_ticket = LifoQueue()
+plat = platform.system().lower()
 
 """
 $HOME/.cabbage_toolkit
@@ -69,7 +70,6 @@ def shutdown():
         pass
     if real_exit:
         server.srv.shutdown()
-        plat = platform.system().lower()
         if plat == 'linux':
             cmd="ps -ef | grep '.cabbage_toolkit/program/main.py' | grep -v 'grep' | awk '{print $2}' | xargs kill -9"
             result = os.popen(cmd).read()
@@ -96,16 +96,24 @@ def open_browser_with_url():
     opener = get_system_folder_opener()
     if not opener:
         raise Exception("Couldn't found opener, open url failed!")
-    runShellCommand(opener + " http://localhost:1777")
+    v = str(time.time()).split('.')[0]
+    # 加入v参数, 禁用浏览器缓存
+    if plat == 'linux':
+        runShellCommand(opener + " http://localhost:1777?v={}".format(v))
+    else:
+        runShellCommand(opener + " http://localhost:1777")
 
 
 if __name__ == '__main__':
     # main()
     create_app_default_path()
-    plat = platform.system().lower()
     if plat == 'linux' and not is_firefox_installed():
         showNativeAlert("检测到您未安装firefox浏览器, 请在discover商店上搜索并安装，安装后重新打开应用")
         exit(0)
+    if plat == 'linux' and os.environ.get("LANGUAGE", "").startswith("zh_"):
+        showNativeAlert("该程序仅支持英文steamos系统，检测到您所使用的steamos系统安装了汉化补丁，请在语言选项中改为英文")
+        exit(0)
+
 
     Thread(target=open_browser_with_url).start()
     run(server=server)

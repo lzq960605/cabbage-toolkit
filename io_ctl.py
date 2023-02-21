@@ -27,6 +27,15 @@ def io_ctl_del(src):
 def io_ctl_list(src):
     return os.listdir(src)
 
+def io_ctl_list_with_absolute_path(src):
+    return list(map(lambda v:os.path.join(src, v), os.listdir(src)))
+
+# 统计目录大小(单位:KB)
+def io_ctl_du_path(src):
+    cmd = "du -l --max-depth=1 {}".format(src)
+    result = os.popen(cmd).read()
+    return result
+
 
 def io_ctl_decompress_to(src, dst):
     ad = ArchiveDecompression(src)
