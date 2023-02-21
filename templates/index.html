@@ -352,7 +352,7 @@
                             <el-table-column
                                     label="类型"
                                     width="120">
-                                <template slot-scope="scope">{{ scope.row.nonSteam ? '非Steam游戏' : 'Steam游戏' }}</template>
+                                <template slot-scope="scope">{{ (scope.row.nonSteam==null) ? '': (scope.row.nonSteam==1 ? '非steam游戏' : 'steam游戏') }}</template>
                             </el-table-column>
                             <el-table-column
                                     prop="path"
@@ -397,7 +397,7 @@
                             <el-table-column
                                     label="类型"
                                     width="120">
-                                <template slot-scope="scope">{{ scope.row.nonSteam ? '非Steam游戏' : 'Steam游戏' }}</template>
+                                <template slot-scope="scope">{{ (scope.row.nonSteam==null) ? '': (scope.row.nonSteam==1 ? '非steam游戏' : 'steam游戏') }}</template>
                             </el-table-column>
                             <el-table-column
                                     prop="path"
