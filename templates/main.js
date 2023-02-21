@@ -2,6 +2,9 @@ new Vue({
     el: '#app',
     data: function() {
         return {
+            pageLoading:false,
+            pageLoadingText:'加载中',
+            pageLoadingTimer: null,
             // main_windows: 'GAME_SETTING', // GAME_SETTING, PROTON_PATCH
             visible: false,
             options: [{
@@ -61,25 +64,16 @@ new Vue({
                 "windows_app": [],
             },
             windowsAppListData: [],
+            cacheTabActiveName: 'shaderCache',
             // 缓存列表
+            apiCacheReturn:null,
             gameCache: {
-                "shaderCache":[{
-                    size: '10',
-                    gameId: '123456',
-                    gameName: '王小虎',
-                    nonSteam: '1',
-                    path: '.local/share/Steam/steamapps/shadercache/123456'
-                }, {
-                    size: '10',
-                    gameId: '123456',
-                    gameName: '王小虎',
-                    nonSteam: '1',
-                    path: '.local/share/Steam/steamapps/shadercache/123456'
-                }],
+                "shaderCache":[],
                 "compatdata":[],
             },
             multipleSelection: [],
             shaderOnlyDeleted: true,
+            onlyDeletedDisabled:false,
         }
     },
     methods: {
@@ -93,16 +87,24 @@ new Vue({
                 this.$message.success(msg);
             }
         },
-        lockScreen: function(waitSecond){
-            const loading = this.$loading({
-                lock: true,
-                text: '处理中',
-                spinner: 'el-icon-loading',
-                background: 'rgba(0, 0, 0, 0.7)'
-            });
-            setTimeout(() => {
-                loading.close();
-            }, waitSecond*1000);
+        lockScreen: function(waitSecond, notifyText){
+            // const loading = this.$loading({
+            //     lock: true,
+            //     text: '处理中',
+            //     spinner: 'el-icon-loading',
+            //     background: 'rgba(0, 0, 0, 0.7)'
+            // });
+            this.pageLoading = true;
+            this.pageLoadingText = notifyText || '加载中';
+            const wait = waitSecond || 999;
+            this.pageLoadingTimer = setTimeout(() => {
+                // loading.close();
+                this.pageLoading = false;
+            }, wait*1000);
+        },
+        lockScreenClear: function(){
+            this.pageLoading = false;
+            clearTimeout(this.pageLoadingTimer);
         },
         onEnterAuthorHomeSite:function(){
             if(this.appSetting.adv.author_home_page){
@@ -802,32 +804,113 @@ new Vue({
                 console.error(e);
             });
         },
+        onHandleCacheTapChange(tab, event){
+            if (tab.name == 'shaderCache') {
+                this.shaderOnlyDeleted = true;
+                this.onlyDeletedDisabled = false
+            }
+            if (tab.name == 'compatdata') {
+                this.shaderOnlyDeleted = true;
+                this.onlyDeletedDisabled = true
+            }
+            if(this.shaderOnlyDeleted){
+                this.gameCache.shaderCache = this.apiCacheReturn.shaderCacheWithoutInstalled;
+                this.gameCache.compatdata = this.apiCacheReturn.compatdataWithoutInstalled;
+            }
+            else {
+                this.gameCache.shaderCache = this.apiCacheReturn.shaderCache;
+                this.gameCache.compatdata = this.apiCacheReturn.compatdata;
+            }
+        },
+        onDoCleanCache() {
+            const pathToDel = this.multipleSelection.map(v=>v.path);
+            this.lockScreen(999, "正在清除缓存, 请稍后");
+            commandRequest('GAME_SETTING', 'ioCtl', {
+                ctl: 'del_multiple',
+                src: pathToDel
+            }).then((resp)=>{
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                this.lockScreenClear();
+                this.$alert(`清除完成, 点击确定重新刷新列表.`, '提示', {
+                    confirmButtonText: '确定',
+                    callback: (action) => {
+                        if (action === 'confirm') {
+                            this.onGetCacheFolder();
+                        }
+                    }
+                });
+            }).catch((e)=>{
+                this.lockScreenClear();
+                console.error(e);
+                this.$message.error(e.message);
+            });
+        },
         onConfirmCleanCache(rows) {
+            if(this.multipleSelection.length === 0){
+                this.$message.warning('请先选择对应的缓存目录');
+                return;
+            }
             console.log(`onConfirmCleanCache: ${JSON.stringify(this.multipleSelection)}`);
+            let sumSize = Number(0);
+            this.multipleSelection.forEach((v)=>{
+               sumSize += Number(v.size);
+            });
+            let notifyText = ``;
+            if(this.cacheTabActiveName === 'shaderCache'){
+                notifyText = `预计回收${sumSize}MB存储空间`;
+            }
+            else {
+                notifyText = `清除兼容层缓存可能会导致重要游戏数据(如本地存档)丢失，建议先备份游戏数据再清除，是否要继续清空缓存?(预计回收${sumSize}MB存储空间)`;
+            }
+            this.$confirm(notifyText, '是否继续', {
+                confirmButtonText: '确定',
+                cancelButtonText: '放弃清空',
+                callback: (action) => {
+                    if (action === 'confirm') {
+                        this.onDoCleanCache();
+                    }
+                }
+            });
         },
         handleSelectionChange(val) {
             this.multipleSelection = val;
         },
+        onChangeCacheCheckbox(val) {
+            if(val){
+                this.gameCache.shaderCache = this.apiCacheReturn.shaderCacheWithoutInstalled;
+                this.gameCache.compatdata = this.apiCacheReturn.compatdataWithoutInstalled;
+            }
+            else {
+                this.gameCache.shaderCache = this.apiCacheReturn.shaderCache;
+                this.gameCache.compatdata = this.apiCacheReturn.compatdata;
+            }
+        },
         onGetCacheFolder() {
-
-            // 获取游戏缓存数据(阻塞安装)
-            // const loading = this.$loading({
-            //     lock: true,
-            //     text: '正在计算缓存空间大小，请稍等...',
-            //     spinner: 'el-icon-loading',
-            //     background: 'rgba(0, 0, 0, 0.7)'
-            // });
-            // commandRequest('GAME_SETTING', 'getCacheFolder', {}).then((resp)=>{
-            //     loading.close();
-            //     if(apiErrorAndReturn(this, resp)){
-            //         return;
-            //     }
-            //     const result = resp.data.data.result;
-            //     console.log(`getCacheFolder: ${JSON.stringify(result)}`);
-            // }).catch((e)=>{
-            //     loading.close();
-            //     console.error(e);
-            // });
+            // 获取游戏缓存数据(阻塞加载)
+            this.lockScreen(999, "正在计算缓存目录占用空间，可能需要一段时间.");
+            commandRequest('GAME_SETTING', 'getCacheFolder', {}).then((resp)=>{
+                this.lockScreenClear();
+                if(apiErrorAndReturn(this, resp)){
+                    return;
+                }
+                const result = resp.data.data.result;
+                // console.log(`getCacheFolder: ${JSON.stringify(result)}`);
+                this.apiCacheReturn = parseCacheInfoToJson(result);
+                console.log(`cacheInfo: ${JSON.stringify(this.apiCacheReturn)}`);
+                if(this.shaderOnlyDeleted){
+                    this.gameCache.shaderCache = this.apiCacheReturn.shaderCacheWithoutInstalled;
+                    this.gameCache.compatdata = this.apiCacheReturn.compatdataWithoutInstalled;
+                }
+                else {
+                    this.gameCache.shaderCache = this.apiCacheReturn.shaderCache;
+                    this.gameCache.compatdata = this.apiCacheReturn.compatdata;
+                }
+            }).catch((e)=>{
+                this.lockScreenClear();
+                console.error(e);
+            });
         },
         onChangeWindows:function () {
             if(this.main_windows === '1'){
@@ -920,14 +1003,6 @@ new Vue({
             });
         }, 30000);
         this.onGetAppSetting();
-        this.lockScreen();
-
-        this.$loading({
-            lock: true,
-            text: '处理中',
-            spinner: 'el-icon-loading',
-            background: 'rgba(0, 0, 0, 0.7)'
-        });
     },
     created: function() {
         window.onload = function () {

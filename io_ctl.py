@@ -24,6 +24,22 @@ def io_ctl_del(src):
     shutil.rmtree(src)
 
 
+def io_ctl_del_multiple(pathList):
+    errMsg = ""
+    for path in pathList:
+        try:
+            if os.path.exists(path):
+                shutil.rmtree(path)
+        except Exception as e:
+            errMsg += 'delete folder:{} failed.\n'.format(path)
+            print('delete folder:{} failed:'.format(path), e)
+        finally:
+            pass
+
+    if errMsg != "":
+        raise Exception(errMsg)
+
+
 def io_ctl_list(src):
     return os.listdir(src)
 
@@ -32,7 +48,8 @@ def io_ctl_list_with_absolute_path(src):
 
 # 统计目录大小(单位:KB)
 def io_ctl_du_path(src):
-    cmd = "du -l --max-depth=1 {}".format(src)
+    pathName = os.path.basename(src)
+    cmd = "du -l --max-depth=1 {} | grep -vE '{}$'".format(src, pathName)
     result = os.popen(cmd).read()
     return result
 

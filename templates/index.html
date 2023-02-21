@@ -81,7 +81,12 @@
   <div id="app" style="background-color: #E9EEF3">
 
 
-    <el-container>
+    <el-container
+        v-loading="pageLoading"
+        :element-loading-text="pageLoadingText"
+        element-loading-spinner="el-icon-loading"
+        element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
       <el-header  style="display: flex;justify-content: space-between;  font-size: 12px">
           <div style="width: 30%;text-align: left">
               <span style="font-size: 18px;font-weight: bolder">大白菜工具箱{{ appSetting.version }}</span>
@@ -312,11 +317,11 @@
       <el-container  v-if="main_windows=='4'">
             <div style="display: flex; flex-direction: column">
                 <!-- type="border-card"  -->
-                <el-tabs tab-position="left" style="width: 100%">
+                <el-tabs v-model="cacheTabActiveName"  @tab-click="onHandleCacheTapChange" tab-position="left" style="width: 100%">
                     <div style="margin-top: 10px;margin-bottom: 10px;">
-                        <el-checkbox v-model="shaderOnlyDeleted">仅显示已在steam客户端删除的游戏</el-checkbox>
+                        <el-checkbox @change="onChangeCacheCheckbox" ref="shaderOnlyDeletedCheckbox" v-model="shaderOnlyDeleted" :disabled="onlyDeletedDisabled">仅显示已在steam客户端删除的游戏</el-checkbox>
                     </div>
-                    <el-tab-pane label="着色器缓存">
+                    <el-tab-pane label="着色器缓存" name="shaderCache">
                         <!--列表-->
                         <el-table
                                 ref="multipleTable"
@@ -361,7 +366,7 @@
                         </div>
 
                     </el-tab-pane>
-                    <el-tab-pane label="兼容层缓存">
+                    <el-tab-pane label="兼容层缓存" name="compatdata">
                         <!--列表-->
                         <el-table
                                 ref="multipleTable"
@@ -409,7 +414,7 @@
                 <div style="text-align: left;font-size: 10px;color: #777;">
                     <p>Tips:</p>
                     <p>1. 该功能可以清除已在steam客户端中删除的游戏缓存；</p>
-                    <p>2. 清理缓存文件可能带来文件丢失的风险，开发者不对可能导致的风险负责，请自行斟酌。</p>
+                    <p>2. 清理缓存文件可能带来重要数据丢失的风险，开发者不对可能导致的风险负责，请自行斟酌。</p>
                 </div>
             </div>
 

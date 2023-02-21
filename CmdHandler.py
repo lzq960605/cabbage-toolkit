@@ -13,7 +13,7 @@ from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_D
     APP_PROGRAM_PATH
 from dev_mock import WINDOWS_MOCK_GAME_LIST, WINDOWS_MOCK_FILE_SELECTOR_RESULT, WINDOWS_MOCK
 from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_ctl_del, io_ctl_decompress_to, \
-    io_ctl_decompression_to_with_system, io_ctl_du_path
+    io_ctl_decompression_to_with_system, io_ctl_du_path, io_ctl_del_multiple
 from steam import STEAM_COMPAT_TOOL_PATH, STEAM_APP_SHADERCACHE_PATH, STEAM_APP_COMPAT_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
     launch_subprocess_cmd, get_protontricks_provider
@@ -132,6 +132,12 @@ class CmdHandler(object):
             return {
                 "cmdCode": 0,
                 "result": io_ctl_del(self.params['src']),
+                "errMsg": "",
+            }
+        if ctl == 'del_multiple':
+            return {
+                "cmdCode": 0,
+                "result": io_ctl_del_multiple(self.params['src']),
                 "errMsg": "",
             }
         if ctl == 'list':
