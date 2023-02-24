@@ -35,6 +35,8 @@ new Vue({
             storageDialogVisible: false,
             storageDialogTarget: '', // openDiskC_Path, openGameInstallPath
             softwareDialogVisible: false, //控制软件选择对话框显示与隐藏
+            fileSelectorDialogVisible: false,
+            fileSelectorValue: '', // 文件对话框所选的文件
             softwareDialogOptions: [],
             softwareDialogOptionsValue: '',
             softwareInfo: {},
@@ -120,6 +122,8 @@ new Vue({
                     this.appSetting = JSON.parse(resp.data.data.result);
                     console.log('onGetAppSetting: ' + JSON.stringify(this.appSetting));
                 }
+                // 打开文件选择对话框
+                this.fileSelectorDialogVisible = true;
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);
@@ -918,6 +922,45 @@ new Vue({
                 console.error(e);
             });
         },
+        onBeforeFileSelectorOpen(){
+            // 初始化fileSelector
+            fileSelectorInit(this.appSetting.user_home_path, (fe, eventName, data)=>{
+                if(eventName === 'onrefresh'){
+                    const path = data.GetPathIDs().join('/');
+                    commandRequest('GAME_SETTING', 'ioCtl', {
+                        ctl: 'list',
+                        src: path
+                    }).then((resp)=>{
+                        if(apiErrorAndReturn(this, resp)){
+                            return;
+                        }
+                        let fileList = resp.data.data.result || [];
+                        fileList = fileList.map(v=>{
+                            // {name: 'Desktop', id: 'Desktop', hash: 'Desktop', type: 'folder'}
+                            return {
+                                name: v.name,
+                                id: v.name,
+                                hash: v.name,
+                                type: (v.dir === 1 || v.symlink === 1) ? 'folder' : 'file',
+                            }
+                        });
+                        console.log(fileList);
+                        if(fe.IsMappedFolder(data)){
+                            data.SetEntries(fileList);
+                        }
+                    }).catch((e)=>{
+                        console.error(e);
+                        this.$message.error(e.message);
+                    });
+                }
+                if(eventName === 'onfocus'){
+                    if(data.entryType === 'file' && data.entryId){
+                        console.log(`select file: ${data.filePath}`);
+                        this.fileSelectorValue = data.filePath;
+                    }
+                }
+            });
+        },
         onChangeWindows:function () {
             if(this.main_windows === '1'){
                 commandRequest('GAME_SETTING', 'gameList', {}).then((resp)=>{
@@ -987,7 +1030,6 @@ new Vue({
             if(apiErrorAndReturn(this, resp)){
                 return;
             }
-
             this.checkAppOnlineVersion();
         }).catch((e)=>{
             console.error(e);
@@ -1009,6 +1051,8 @@ new Vue({
             });
         }, 30000);
         this.onGetAppSetting();
+
+
     },
     created: function() {
         window.onload = function () {

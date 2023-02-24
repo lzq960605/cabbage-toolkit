@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 
 from ArchiveDecompression import ArchiveDecompression
@@ -41,7 +42,19 @@ def io_ctl_del_multiple(pathList):
 
 
 def io_ctl_list(src):
-    return os.listdir(src)
+    currentPath = pathlib.Path(src)
+    result = []
+    for item in currentPath.iterdir():
+        result.append({
+            "name": item.name,
+            "suffix": item.suffix,
+            "dir": 1 if item.is_dir() else 0,
+            "file": 1 if item.is_file() else 0,
+            "symlink": 1 if item.is_symlink() else 0,
+        })
+
+    # return os.listdir(src)
+    return result
 
 def io_ctl_list_with_absolute_path(src):
     return list(map(lambda v:os.path.join(src, v), os.listdir(src)))

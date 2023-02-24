@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <!-- import CSS -->
   <link rel="stylesheet" href="element-ui/css/index.css">
+  <link rel="stylesheet" type="text/css" href="file-explorer/file-explorer.css">
   <!-- steamdeck scale 1280x800 -->
   <style type="text/css">
     .el-header {
@@ -74,6 +75,15 @@
 
     .el-button {
       margin-bottom: 12px;
+    }
+
+    html.embed, html.embed body { padding: 0; margin: 0; }
+    html.embed p { padding: 0; margin: 0; display: none; }
+
+    #filemanager { height: 50vh; max-height: 400px; position: relative; }
+    html.embed #filemanager { height: 100vh; }
+    .fe_fileexplorer_folder_tools_scroll_wrap {
+        display: none;
     }
   </style>
 </head>
@@ -454,13 +464,29 @@
               <el-button size="small" type="primary"  class="title" @click="onConfirmInstallSoftware">安装</el-button>
           </div>
       </el-dialog>
+
+      <!-- 文件选择框 -->
+      <el-dialog
+              @opened="onBeforeFileSelectorOpen"
+              title="提示"
+              :visible.sync="fileSelectorDialogVisible"
+              width="80%">
+          <p>所选文件:{{fileSelectorValue}}</p>
+          <div id="filemanager"></div>
+          <span slot="footer" class="dialog-footer">
+            <el-button type="success" plain @click="onConfirmFileChoice(false)">取消</el-button>
+            <el-button type="success" plain type="primary" @click="onConfirmFileChoice(true)">确定</el-button>
+          </span>
+      </el-dialog>
   </div>
+
 </body>
   <script src="axios/axios.min.js"></script>
   <!-- import Vue before Element -->
   <script src="vue/vue.js"></script>
   <!-- import JavaScript -->
   <script src="element-ui/js/index.js"></script>
+  <script type="text/javascript" src="file-explorer/file-explorer.js"></script>
   <script src="common.js"></script>
   <script src="main.js"></script>
 </html>
