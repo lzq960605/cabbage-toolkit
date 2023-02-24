@@ -37,6 +37,7 @@ new Vue({
             softwareDialogVisible: false, //控制软件选择对话框显示与隐藏
             fileSelectorDialogVisible: false,
             fileSelectorValue: '', // 文件对话框所选的文件
+            fileSelectorFe: null, // 文件选择句柄
             softwareDialogOptions: [],
             softwareDialogOptionsValue: '',
             softwareInfo: {},
@@ -122,8 +123,6 @@ new Vue({
                     this.appSetting = JSON.parse(resp.data.data.result);
                     console.log('onGetAppSetting: ' + JSON.stringify(this.appSetting));
                 }
-                // 打开文件选择对话框
-                this.fileSelectorDialogVisible = true;
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);
@@ -194,13 +193,8 @@ new Vue({
                 return;
             }
             // 先选择exe, 再打开
-            commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-                if(apiErrorAndReturn(this, resp, true)){
-                    return;
-                }
-                let path = resp.data.data.result;
-                path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
-                console.log(`path:${path}`);
+            openFileSelector(this, (filePath, fileType)=>{
+                let path = filePath;
                 if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
                     this.$message.warning('文件路径或文件名不能包含中文或空格!');
                     return;
@@ -221,9 +215,6 @@ new Vue({
                         this.$message.error(e.message);
                     })
                 }
-            }).catch((e)=>{
-                console.error(e);
-                this.$message.error(e.message);
             });
         },
         // ------ 辅助功能 ------
@@ -443,9 +434,8 @@ new Vue({
                 this.$message.warning('兼容层补丁版本太低，请重新打补丁');
                 return;
             }
-            commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-                if(apiErrorAndReturn(this, resp, true)){
-                    // 不选择任何东西, 就清除设置
+            openFileSelector(this, (filePath, fileType)=>{
+                if(!filePath){
                     this.$alert('取消游戏运行时启动附件应用', '是否取消', {
                         confirmButtonText: '确定',
                         callback: (action) => {
@@ -456,8 +446,7 @@ new Vue({
                     });
                     return;
                 }
-                let path = resp.data.data.result;
-                path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
+                let path = filePath;
                 console.log(`path:${path}`);
                 if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
                     this.$message.warning('文件路径或文件名不能包含中文或空格!');
@@ -469,10 +458,7 @@ new Vue({
                     this.geGameOptionConf['WINE_FLINGTRAINER'] = 0;
                     this.updateGeProtonGameConf({WINE_EXTRA_EXE:path, WINE_CHEATENGINE:'0', WINE_FLINGTRAINER:'0'});
                 }
-            }).catch((e)=>{
-                console.error(e);
-                this.$message.error(e.message);
-            });
+            })
         },
         updateGeProtonTaskmgr: function(){
             if(!this.currentGeProton.name){
@@ -923,8 +909,9 @@ new Vue({
             });
         },
         onBeforeFileSelectorOpen(){
-            // 初始化fileSelector
-            fileSelectorInit(this.appSetting.user_home_path, (fe, eventName, data)=>{
+            // 初始化fileSelector实例
+            this.fileSelectorValue = '';
+            this.fileSelectorFe = fileSelectorInit(this.appSetting.user_home_path, (fe, eventName, data)=>{
                 if(eventName === 'onrefresh'){
                     const path = data.GetPathIDs().join('/');
                     commandRequest('GAME_SETTING', 'ioCtl', {
@@ -936,7 +923,6 @@ new Vue({
                         }
                         let fileList = resp.data.data.result || [];
                         fileList = fileList.map(v=>{
-                            // {name: 'Desktop', id: 'Desktop', hash: 'Desktop', type: 'folder'}
                             return {
                                 name: v.name,
                                 id: v.name,
@@ -944,7 +930,7 @@ new Vue({
                                 type: (v.dir === 1 || v.symlink === 1) ? 'folder' : 'file',
                             }
                         });
-                        console.log(fileList);
+                        // console.log(fileList);
                         if(fe.IsMappedFolder(data)){
                             data.SetEntries(fileList);
                         }
@@ -960,6 +946,21 @@ new Vue({
                     }
                 }
             });
+        },
+        onConfirmFileChoice(confirm){
+          if(!confirm){
+              this.fileSelectorValue = '';
+          }
+          this.fileSelectorDialogVisible = false;
+        },
+        onFileSelectorClose(){
+            console.log('onFileSelectorClose');
+            // this.onConfirmFileChoice(false);
+            this.fileSelectorDialogVisible = false;
+            if(this.fileSelectorFe != null){
+                this.fileSelectorFe.Destroy();
+                this.fileSelectorFe = null;
+            }
         },
         onChangeWindows:function () {
             if(this.main_windows === '1'){

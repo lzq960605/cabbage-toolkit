@@ -85,6 +85,13 @@
     .fe_fileexplorer_folder_tools_scroll_wrap {
         display: none;
     }
+
+    .file-selector  .el-dialog__body{
+        padding: 10px;
+    }
+    .file-selector  .el-dialog__header {
+        padding: 10px 10px 0px;
+    }
   </style>
 </head>
 <body>
@@ -467,8 +474,10 @@
 
       <!-- 文件选择框 -->
       <el-dialog
+              class="file-selector"
               @opened="onBeforeFileSelectorOpen"
-              title="提示"
+              @close="onFileSelectorClose"
+              title="文件选择"
               :visible.sync="fileSelectorDialogVisible"
               width="80%">
           <p>所选文件:{{fileSelectorValue}}</p>
