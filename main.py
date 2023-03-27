@@ -8,7 +8,7 @@ from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 # toolkit数据目录定义
 from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand, \
-    showNativeAlert, is_firefox_installed
+    showNativeAlert, is_firefox_installed, showNativeConfirm, install_firefox_with_xterm
 
 api_ticket = LifoQueue()
 plat = platform.system().lower()
@@ -108,7 +108,18 @@ if __name__ == '__main__':
     # main()
     create_app_default_path()
     if plat == 'linux' and not is_firefox_installed():
-        showNativeAlert("检测到您未安装firefox浏览器, 请在discover商店上搜索并安装，安装后重新打开应用")
+        # showNativeAlert("检测到您未安装firefox浏览器, 请在discover商店上搜索并安装，安装后重新打开应用")
+        ret = showNativeConfirm("检测到您未安装firefox浏览器, 是否自动安装? 安装速度看网络情况，失败请多试几次.")
+        # 用户按了'确定'
+        if ret == 0:
+            ret_install = install_firefox_with_xterm()
+            if is_firefox_installed():
+                showNativeAlert("安装firefox浏览器成功，请重新打开应用")
+            else:
+                showNativeAlert("安装firefox浏览器失败，请重试")
+        else:
+            showNativeAlert("你可在discover商店上搜索并安装firefox浏览器，安装后重新打开应用")
+
         exit(0)
     if plat == 'linux' and os.environ.get("LANGUAGE", "").startswith("zh_"):
         showNativeAlert("该程序仅支持英文steamos系统，检测到您所使用的steamos系统安装了汉化补丁，请在语言选项中改为英文")

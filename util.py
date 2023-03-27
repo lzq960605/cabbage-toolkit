@@ -6,6 +6,7 @@ import zipfile
 from os.path import join, getsize
 
 from ArchiveDecompression import ArchiveDecompression
+from CmdlineExecutor import CmdlineExecutor
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
     PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE, APP_WINDOWS_CACHE_PATH
 from dev_mock import WINDOWS_MOCK
@@ -37,9 +38,14 @@ def runShellCommand(cmdline):
 
 
 def showNativeAlert(message):
-    # 检测到您未安装firefox浏览器, 请在discover商店上搜索安装吗，安装后重新打开应用
     cmd = "zenity  --warning --text=\"{}\"".format(message)
     runShellCommand(cmd)
+
+# 显示对话框
+def showNativeConfirm(message):
+    cmd = "zenity  --question --text=\"{}\"".format(message)
+    result = runShellCommand(cmd)
+    return result['cmdCode']
 
 
 def launch_subprocess_cmd(command_to_lunch, cwd=None, raise_errors=False):
@@ -89,6 +95,12 @@ def is_firefox_installed():
     cmd = "flatpak list | grep firefox | wc -l"
     result = os.popen(cmd).read()
     return result.strip() != "0"
+
+def install_firefox_with_xterm():
+    script_file_path = os.path.join(get_user_homepath(), APP_PROGRAM_PATH, "system_tools_script", "firefox_installer.sh")
+    executor = CmdlineExecutor("")
+    result = executor.exec_script_with_new_terminal(script_file_path)
+    return result['cmdCode']
 
 
 def create_app_default_path():
