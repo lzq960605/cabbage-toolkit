@@ -4,12 +4,14 @@ import subprocess
 import tarfile
 import zipfile
 from os.path import join, getsize
+from pathlib import Path
 
 from ArchiveDecompression import ArchiveDecompression
 from CmdlineExecutor import CmdlineExecutor
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
     PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE, APP_WINDOWS_CACHE_PATH
 from dev_mock import WINDOWS_MOCK
+from steam import get_steam_lib_paths, get_steam_apps
 
 
 def get_user_homepath():
@@ -176,3 +178,12 @@ def get_real_path(target_path):
 
     return target_path
 
+def get_steam_all_apps():
+    user_home_path = get_user_homepath()
+    steam_path = Path(user_home_path + "/" + ".local/share/Steam")
+    steam_lib_paths = get_steam_lib_paths(steam_path)
+    # Find all Steam apps
+    return get_steam_apps(
+        steam_root=steam_path, steam_path=steam_path,
+        steam_lib_paths=steam_lib_paths
+    )

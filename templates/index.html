@@ -184,8 +184,76 @@
         </el-aside>
       </el-container>
 
-      <!-- 兼容层补丁 -->
+        <!-- 多开exe -->
       <el-container  v-if="main_windows=='2'">
+            <el-aside width="200px" style="height:580px;width: 220px">
+              <el-menu :default-openeds="['1']">
+                  <el-submenu index="1">
+                      <template slot="title"><i class="el-icon-arrow-down"></i>游戏列表</template>
+
+                      <el-menu-item  v-for="(item,index) in gameListAll" @click="onClickMultiExeGameItem(item)" :index="(index+1).toString()" class="text item" style="padding-left: 0px;">
+                          {{item.name}}
+                      </el-menu-item >
+
+                  </el-submenu>
+              </el-menu>
+            </el-aside>
+            <el-main>
+                <div style="text-align: left">
+                    <p> {{!geGameOptionValue ? '未选择游戏':multiExeGame.name}}</p>
+                </div>
+                <el-divider></el-divider>
+                <el-card class="box-card" style="text-align: left">
+                    <div slot="header" class="clearfix">
+                        <!-- <el-select @change="onChangeGeProtonGame"  v-model="geGameOptionValue" placeholder="请选择游戏">
+                            <el-option
+                                    v-for="item in geGameOptions"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>-->
+                        <span>游戏开启时同时启动:</span>
+                        <!--<el-button type="success" plain style="float: right; padding: 3px 0" type="text">操作按钮</el-button>-->
+                    </div>
+                    <el-row v-if="geGameOptionValue!=''">
+                        <el-button type="success" plain @click="updateGeProtonAttachGame(true)">{{!!geGameOptionConf.WINE_EXTRA_EXE ? '编辑' : '添加'}}附加exe</el-button>
+                        <el-button type="success" plain @click="updateGeProtonTaskmgr(true)">{{geGameOptionConf.WINE_TASKMGR == '1' ? '关闭' : '启动'}}任务管理器</el-button>
+                        <el-button type="success" plain @click="updateGeProtonCheat('CheatEngine', true)">{{geGameOptionConf.WINE_CHEATENGINE == '1' ? '关闭' : '启动'}}CE修改器</el-button>
+                        <el-button type="success" plain @click="updateGeProtonCheat('FLiNGTrainer', true)">{{geGameOptionConf.WINE_FLINGTRAINER == '1' ? '关闭' : '启动'}}风灵月影</el-button>
+                    </el-row>
+                </el-card>
+
+                <el-divider></el-divider>
+                <div style="text-align: left;font-size: 10px;color: #777;">
+                    <p>Tips:</p>
+                    <p>1. 该多开exe方式使用了修改游戏'启动选项'的方式, 支持社区版兼容层与官方兼容层</p>
+                    <p>2. 若安装了汉化补丁，可能导致游戏列表无法显示，请在桌面模式将系统语言改成'英文'</p>
+                </div>
+
+            </el-main>
+
+            <el-aside style="min-width: 320px;padding:20px;background-color: #E9EEF3">
+                <p style="text-align: left;font-weight: bolder;">游戏信息:</p>
+                <el-divider></el-divider>
+                <div style="text-align: left">
+                    <p>游戏id: {{!!multiExeGame.id ? multiExeGame.id : ''}}</p>
+                </div>
+                <div v-if="geGameOptionValue!=''">
+                    <br/>
+                    <p style="text-align: left;font-weight: bolder;">游戏设置状态:</p>
+                    <el-divider></el-divider>
+                    <div style="text-align: left">
+                        <p>游戏启动时打开任务管理器: {{geGameOptionConf.WINE_TASKMGR == '1' ? '是' : '否'}}</p>
+                        <p style="word-break:break-word">游戏启动时打开以下程序: {{geGameOptionConf.WINE_EXTRA_EXE ? geGameOptionConf.WINE_EXTRA_EXE : ''}}</p>
+                        <p>游戏启动时打开CE修改器: {{geGameOptionConf.WINE_CHEATENGINE == '1' ? '是' : '否'}}</p>
+                        <p>游戏启动时打开风灵月影: {{geGameOptionConf.WINE_FLINGTRAINER == '1' ? '是' : '否'}}</p>
+                    </div>
+                </div>
+            </el-aside>
+        </el-container>
+      <!-- 兼容层补丁 -->
+      <el-container  v-if="main_windows=='3'">
         <el-aside width="200px" style="height:580px;width: 220px">
           <el-menu :default-openeds="['1']">
 
@@ -267,7 +335,7 @@
         </el-aside>
       </el-container>
       <!-- 软件中心 -->
-      <el-container  v-if="main_windows=='3'">
+      <el-container  v-if="main_windows=='4'">
           <div style="display: flex; flex-direction: column">
               <!-- type="border-card"  -->
              <el-tabs tab-position="left" style="width: 100%">
@@ -332,7 +400,7 @@
 
       </el-container>
       <!-- 缓存清理 -->
-      <el-container  v-if="main_windows=='4'">
+      <el-container  v-if="main_windows=='5'">
             <div style="display: flex; flex-direction: column">
                 <!-- type="border-card"  -->
                 <el-tabs v-model="cacheTabActiveName"  @tab-click="onHandleCacheTapChange" tab-position="left" style="width: 100%">

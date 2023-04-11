@@ -16,7 +16,7 @@ from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_
     io_ctl_decompression_to_with_system, io_ctl_du_path, io_ctl_del_multiple
 from steam import STEAM_COMPAT_TOOL_PATH, STEAM_APP_SHADERCACHE_PATH, STEAM_APP_COMPAT_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
-    launch_subprocess_cmd, get_protontricks_provider
+    launch_subprocess_cmd, get_protontricks_provider, get_steam_all_apps
 
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
@@ -206,6 +206,15 @@ class CmdHandler(object):
             dict_data['cmdCode'] = 0
 
         return dict_data
+
+
+    def gameListAll(self):
+        apps = get_steam_all_apps()
+        return {
+            "cmdCode": 0,
+            "result": list(map(lambda v:{'id':v.appid, 'name':v.name}, apps)),
+            "errMsg": ''
+        }
 
     def gameListInfo(self):
         dict_data = self.gameList()
