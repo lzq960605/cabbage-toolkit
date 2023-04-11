@@ -402,6 +402,11 @@ new Vue({
             })
         },
         writeGeProtonGameConfContent:function(json){
+            // 是否要写入启动参数, 新的多开exe方式使用启动参数的方式进行设置
+            let useLaunchoptions = 0;
+            if(this.main_windows === '2'){
+                useLaunchoptions = 1;
+            }
             const content = Object.entries(json).map(v=>{
                 return `${v[0]}=${v[1]}`;
             }).sort().join('\n');
@@ -409,11 +414,31 @@ new Vue({
                 targetProton: this.currentGeProton.name,
                 gameId: this.geGameOptionValue,
                 content: content,
+                originJson: json,
+                useLaunchoptions: useLaunchoptions
             }).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
                 }
                 this.$message.success('设置成功');
+                if(useLaunchoptions === 1){
+                    this.$confirm('需要重启Steam客户端程序才能让设置生效，是否现在关闭Steam客户端程序?', '提示', {
+                        confirmButtonText: '确定',
+                        callback: (action) => {
+                            if (action === 'confirm') {
+                                commandRequest('PROTON_PATCH', 'killSteamAppClient', {}).then((resp)=>{
+                                    if(apiErrorAndReturn(this, resp)){
+                                        return;
+                                    }
+                                    this.$alert(`已成功关闭Steam客户端程序，请手动点击桌面图标启动Steam客户端程序`, '提示');
+                                }).catch((e)=>{
+                                    console.error(e);
+                                    this.$message.error(e.message);
+                                });
+                            }
+                        }
+                    });
+                }
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);

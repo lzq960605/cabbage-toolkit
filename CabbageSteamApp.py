@@ -1,5 +1,7 @@
+import os
 from pathlib import Path
 
+import vdf
 from steam import get_steam_lib_paths, get_steam_apps
 from util import get_user_homepath
 
@@ -9,12 +11,39 @@ class CabbageSteamApp(object):
         self.appid = appid
         self.app = self._findAppWithAppId(appid)
 
-    def writeVdfValue(self, keyPath, value):
-        pass
+    def writeVdfValue(self, key, value):
+        if not self.app.shortcut_data.__contains__(key):
+            raise Exception(" app:{} shortcut_data not contain:{}".format(self.appid, key))
+        if not os.path.exists(self.app.shortcuts_path):
+            raise Exception(" app:{} shortcuts_path:{} not exist".format(self.appid, self.app.shortcuts_path))
 
-    def readVdfValue(self, keyPath):
-        if self.app.shortcut_data.__contains__(keyPath):
-            return self.app.shortcut_data[keyPath]
+        # 正版游戏
+        if not self.isNonSteamGame():
+            with open(self.app.shortcuts_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            # 解析 VDF 格式(文本格式)
+            data = vdf.loads(content)
+            # 修改数据
+            data['UserLocalConfigStore']['Software']['Valve']['Steam']['apps'][str(self.appid)][key] = value
+            # 将修改后的数据写回 localconfig.vdf 文件
+            with open(self.app.shortcuts_path, 'w', encoding='utf-8') as f:
+                f.write(vdf.dumps(data))
+        # 非steam游戏
+        else:
+            with open(self.app.shortcuts_path, "rb") as f:
+                data = f.read()
+            # 解析 VDF 格式(二进制格式)
+            parsed_data = vdf.binary_loads(data)
+            # 修改数据
+            parsed_data['shortcuts'][str(self.app.shortcut_id)][key] = value
+            # 将修改后的数据写回 shortcut.vdf 文件
+            with open(self.app.shortcuts_path, "wb") as f:
+                f.write(vdf.binary_dumps(parsed_data))
+
+
+    def readVdfValue(self, key):
+        if self.app.shortcut_data.__contains__(key):
+            return self.app.shortcut_data[key]
         return None
 
     def getAppName(self):

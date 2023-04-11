@@ -7,6 +7,7 @@ import time
 from queue import Queue
 from threading import Thread
 
+from CabbageSteamApp import CabbageSteamApp
 from CmdlineExecutor import CmdlineExecutor
 from ServiceException import SERVICE_EXCEPTION_USER_PASSWORD_NOT_SET, ServiceException
 from app_const import APP_GE_PROTON_CONF_PATH, APP_VERSION, APP_HOME_PATH, APP_DOWNLOADS_PATH, \
@@ -32,6 +33,9 @@ RUN_WINECFG_CMDLINE = " -c 'wine winecfg.exe' {}"
 RUN_EXPLORER_CMDLINE = " -c 'wine explorer.exe' {}"
 
 RUN_NATIVE_FILE_SELECTOR = "FILE=`zenity --file-selection --title=\"选择文件\"` && echo \"select file:$FILE\""
+
+LAUNCH_OPTIONS_EXTRA_EXE = "PROTON_REMOTE_DEBUG_CMD=\"{}\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"{}\" %command%"
+LAUNCH_OPTIONS_TASKMGR = "LANG=zh_CN.utf8 PROTON_REMOTE_DEBUG_CMD=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/taskmgr.exe\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/taskmgr.exe\" %command%"
 
 RUN_MAKE_GE_PROTON_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s patch {}"
 RUN_MAKE_GE_PROTON_REVERT_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s revert {}"
@@ -453,6 +457,23 @@ class CmdHandler(object):
         file = open(config_file, 'w')
         file.write(self.params['content'])
         file.close()
+        # 写入启动参数
+        originJson = self.params['originJson']
+        if self.params['useLaunchoptions'] == 1:
+            # 设置附加exe(优先级最高)
+            if originJson.__contains__('WINE_EXTRA_EXE') and originJson['WINE_EXTRA_EXE'] != '':
+                app = CabbageSteamApp(self.params['gameId'] + '')
+                app.writeVdfValue('LaunchOptions', LAUNCH_OPTIONS_EXTRA_EXE.format(originJson['WINE_EXTRA_EXE'],
+                                                                                   originJson['WINE_EXTRA_EXE']))
+            # 设置了开启任务管理器
+            elif originJson.__contains__('WINE_TASKMGR') and originJson['WINE_TASKMGR'] == '1':
+                app = CabbageSteamApp(self.params['gameId'] + '')
+                app.writeVdfValue('LaunchOptions', LAUNCH_OPTIONS_TASKMGR)
+            # 清空启动参数
+            else:
+                app = CabbageSteamApp(self.params['gameId'] + '')
+                app.writeVdfValue('LaunchOptions', "")
+
         return {
             "cmdCode": 0,
             "result": "",
@@ -473,3 +494,9 @@ class CmdHandler(object):
             "result": result,
             "errMsg": "",
         }
+
+    # 强制退出steam客户端
+    def killSteamAppClient(self):
+        command = "ps -ef | grep -E '(steam.sh$|steam$)' | grep -v grep | awk '{print $2}' | xargs kill -9"
+        return runShellCommand(command)
+
