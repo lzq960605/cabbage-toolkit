@@ -21,4 +21,10 @@ main_func(){
   zenity --width="320" --info --text="安装完成, 请在桌面点击'大白菜工具箱'图标, 信任该应用来启动"
 }
 
+
+if [[ $EUID -eq 0 || -n "$SUDO_USER" ]]; then
+  zenity --width="320" --error --text="请使用普通用户身份来执行脚本."
+  exit 1
+fi
+
 main_func

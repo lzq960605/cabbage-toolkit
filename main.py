@@ -7,7 +7,7 @@ from threading import Thread
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
 from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand, \
-    showNativeAlert, is_firefox_installed, showNativeConfirm, install_firefox_with_xterm
+    showNativeAlert, showNativeConfirm, install_firefox_with_xterm, is_default_browser_installed
 
 api_ticket = LifoQueue()
 plat = platform.system().lower()
@@ -110,13 +110,13 @@ def open_browser_with_url():
 if __name__ == '__main__':
     # main()
     create_app_default_path()
-    if plat == 'linux' and not is_firefox_installed():
+    if plat == 'linux' and not is_default_browser_installed():
         # showNativeAlert("检测到您未安装firefox浏览器, 请在discover商店上搜索并安装，安装后重新打开应用")
-        ret = showNativeConfirm("检测到您未安装firefox浏览器, 是否自动安装? 安装速度看网络情况，失败请多试几次.")
+        ret = showNativeConfirm("检测到您未安装任何浏览器, 是否自动安装firefox浏览器? 安装速度看网络情况，失败请多试几次.")
         # 用户按了'确定'
         if ret == 0:
             ret_install = install_firefox_with_xterm()
-            if is_firefox_installed():
+            if is_default_browser_installed():
                 showNativeAlert("安装firefox浏览器成功，请重新打开应用")
             else:
                 showNativeAlert("安装firefox浏览器失败，请重试")

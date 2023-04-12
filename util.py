@@ -99,6 +99,12 @@ def is_firefox_installed():
     result = os.popen(cmd).read()
     return result.strip() != "0"
 
+
+def is_default_browser_installed():
+    cmd = "xdg-settings get default-web-browser"
+    result = os.popen(cmd).read()
+    return result.strip() != ""
+
 def install_firefox_with_xterm():
     script_file_path = os.path.join(get_user_homepath(), APP_PROGRAM_PATH, "system_tools_script", "firefox_installer.sh")
     executor = CmdlineExecutor("")
