@@ -12,16 +12,20 @@ new Vue({
                 label: '游戏设置'
             }, {
                 value: '2',
-                label: '打兼容层补丁'
+                label: '多开exe(新版)'
             }, {
                 value: '3',
-                label: '软件中心'
+                label: '打兼容层补丁(旧版)'
             }, {
                 value: '4',
+                label: '软件中心'
+            }, {
+                value: '5',
                 label: '缓存清理'
             }],
             main_windows: '1',  // 1: GAME_SETTING, 2: PROTON_PATCH
             gameList:[],
+            gameListAll:[], // 所有的游戏(包括没有使用兼容层启动过的)
             currentGame: {
                 id:'',
                 name:'',
@@ -35,11 +39,19 @@ new Vue({
             storageDialogVisible: false,
             storageDialogTarget: '', // openDiskC_Path, openGameInstallPath
             softwareDialogVisible: false, //控制软件选择对话框显示与隐藏
+            fileSelectorDialogVisible: false,
+            fileSelectorValue: '', // 文件对话框所选的文件
+            fileSelectorFe: null, // 文件选择句柄
             softwareDialogOptions: [],
             softwareDialogOptionsValue: '',
             softwareInfo: {},
             geGameOptions: [],
             geGameOptionValue: '',  // 游戏id
+            // 选中的多开exe 游戏信息
+            multiExeGame: {
+                id:'',
+                name:'',
+            },
             // 兼容层游戏持久化配置
             geGameOptionConf: {
                 WINE_TASKMGR:'',
@@ -128,6 +140,11 @@ new Vue({
         onClickGameItem:function (gameItem) {
             this.currentGame = JSON.parse(JSON.stringify(gameItem));
         },
+        onClickMultiExeGameItem:function (gameItem) {
+            this.multiExeGame = JSON.parse(JSON.stringify(gameItem));
+            this.geGameOptionValue = this.multiExeGame.id;
+            this.readGeProtonGameConf(true);
+        },
         onClickGeProtonItem:function (item) {
             const currentGeProton = JSON.parse(JSON.stringify(item));
             currentGeProton.path = STEAM_CONST.STEAM_COMPAT_TOOL_PATH + "/" + item.name;
@@ -190,13 +207,8 @@ new Vue({
                 return;
             }
             // 先选择exe, 再打开
-            commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-                if(apiErrorAndReturn(this, resp, true)){
-                    return;
-                }
-                let path = resp.data.data.result;
-                path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
-                console.log(`path:${path}`);
+            openFileSelector(this, (filePath, fileType)=>{
+                let path = filePath;
                 if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
                     this.$message.warning('文件路径或文件名不能包含中文或空格!');
                     return;
@@ -217,9 +229,6 @@ new Vue({
                         this.$message.error(e.message);
                     })
                 }
-            }).catch((e)=>{
-                console.error(e);
-                this.$message.error(e.message);
             });
         },
         // ------ 辅助功能 ------
@@ -344,10 +353,6 @@ new Vue({
             })
         },
         onGeProtonVersion:function(){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
-            }
             commandRequest('PROTON_PATCH', 'geProtonVersion', {
                 targetProton: this.currentGeProton.name
             }).then((resp)=>{
@@ -364,10 +369,13 @@ new Vue({
                 this.$message.error(e.message);
             })
         },
-        readGeProtonGameConf:function(){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
+        readGeProtonGameConf:function(ignoreGeProton){
+            const ignoreGe = ignoreGeProton || false;
+            if(!ignoreGe){
+                if(!this.currentGeProton.name){
+                    this.$message.warning('请先选择兼容层');
+                    return;
+                }
             }
             if(!this.geGameOptionValue){
                 this.$message.warning('请先选择要设置的游戏');
@@ -394,13 +402,10 @@ new Vue({
             })
         },
         writeGeProtonGameConfContent:function(json){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
-            }
-            if(!this.geGameOptionValue){
-                this.$message.warning('请先选择要设置的游戏');
-                return;
+            // 是否要写入启动参数, 新的多开exe方式使用启动参数的方式进行设置
+            let useLaunchoptions = 0;
+            if(this.main_windows === '2'){
+                useLaunchoptions = 1;
             }
             const content = Object.entries(json).map(v=>{
                 return `${v[0]}=${v[1]}`;
@@ -409,11 +414,31 @@ new Vue({
                 targetProton: this.currentGeProton.name,
                 gameId: this.geGameOptionValue,
                 content: content,
+                originJson: json,
+                useLaunchoptions: useLaunchoptions
             }).then((resp)=>{
                 if(apiErrorAndReturn(this, resp)){
                     return;
                 }
                 this.$message.success('设置成功');
+                if(useLaunchoptions === 1){
+                    this.$confirm('需要重启Steam客户端程序才能让设置生效，是否现在关闭Steam客户端程序?', '提示', {
+                        confirmButtonText: '确定',
+                        callback: (action) => {
+                            if (action === 'confirm') {
+                                commandRequest('PROTON_PATCH', 'killSteamAppClient', {}).then((resp)=>{
+                                    if(apiErrorAndReturn(this, resp)){
+                                        return;
+                                    }
+                                    this.$alert(`已成功关闭Steam客户端程序，请手动点击桌面图标启动Steam客户端程序`, '提示');
+                                }).catch((e)=>{
+                                    console.error(e);
+                                    this.$message.error(e.message);
+                                });
+                            }
+                        }
+                    });
+                }
             }).catch((e)=>{
                 console.error(e);
                 this.$message.error(e.message);
@@ -426,23 +451,25 @@ new Vue({
             this.writeGeProtonGameConfContent(this.geGameOptionConf);
             this.geGameOptionConf = JSON.parse(JSON.stringify(this.geGameOptionConf))
         },
-        updateGeProtonAttachGame: function(){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
+        updateGeProtonAttachGame: function(ignoreGeProton){
+            const ignoreGe = ignoreGeProton || false;
+            if(!ignoreGe){
+                if(!this.currentGeProton.name){
+                    this.$message.warning('请先选择兼容层');
+                    return;
+                }
+                if(!this.currentGeProton.version){
+                    this.$message.warning('兼容层未打补丁');
+                    return;
+                }
+                if(this.currentGeProton.version === '1.0.0'){
+                    this.$message.warning('兼容层补丁版本太低，请重新打补丁');
+                    return;
+                }
             }
-            if(!this.currentGeProton.version){
-                this.$message.warning('兼容层未打补丁');
-                return;
-            }
-            if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
-                return;
-            }
-            commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
-                if(apiErrorAndReturn(this, resp, true)){
-                    // 不选择任何东西, 就清除设置
-                    this.$alert('取消游戏运行时启动附件应用', '是否取消', {
+            openFileSelector(this, (filePath, fileType)=>{
+                if(!filePath){
+                    this.$confirm('取消当游戏运行时 启动附件exe应用程序', '是否取消?', {
                         confirmButtonText: '确定',
                         callback: (action) => {
                             if (action === 'confirm') {
@@ -452,8 +479,7 @@ new Vue({
                     });
                     return;
                 }
-                let path = resp.data.data.result;
-                path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
+                let path = filePath;
                 console.log(`path:${path}`);
                 if(new RegExp("[\\u4E00-\\u9FFF]+", "g").test(path) || path.indexOf(' ') >= 0){
                     this.$message.warning('文件路径或文件名不能包含中文或空格!');
@@ -465,23 +491,23 @@ new Vue({
                     this.geGameOptionConf['WINE_FLINGTRAINER'] = 0;
                     this.updateGeProtonGameConf({WINE_EXTRA_EXE:path, WINE_CHEATENGINE:'0', WINE_FLINGTRAINER:'0'});
                 }
-            }).catch((e)=>{
-                console.error(e);
-                this.$message.error(e.message);
-            });
+            })
         },
-        updateGeProtonTaskmgr: function(){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
-            }
-            if(!this.currentGeProton.version){
-                this.$message.warning('兼容层未打补丁');
-                return;
-            }
-            if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
-                return;
+        updateGeProtonTaskmgr: function(ignoreGeProton){
+            const ignoreGe = ignoreGeProton || false;
+            if(!ignoreGe){
+                if(!this.currentGeProton.name){
+                    this.$message.warning('请先选择兼容层');
+                    return;
+                }
+                if(!this.currentGeProton.version){
+                    this.$message.warning('兼容层未打补丁');
+                    return;
+                }
+                if(this.currentGeProton.version === '1.0.0'){
+                    this.$message.warning('兼容层补丁版本太低，请重新打补丁');
+                    return;
+                }
             }
             if(this.geGameOptionConf['WINE_TASKMGR'] == '0'){
                 this.geGameOptionConf['WINE_TASKMGR'] = '1'
@@ -491,18 +517,21 @@ new Vue({
             }
             this.updateGeProtonGameConf({WINE_TASKMGR:this.geGameOptionConf['WINE_TASKMGR']});
         },
-        updateGeProtonCheat: function(cheatTools){
-            if(!this.currentGeProton.name){
-                this.$message.warning('请先选择兼容层');
-                return;
-            }
-            if(!this.currentGeProton.version){
-                this.$message.warning('兼容层未打补丁');
-                return;
-            }
-            if(this.currentGeProton.version === '1.0.0'){
-                this.$message.warning('兼容层补丁版本太低，请重新打补丁');
-                return;
+        updateGeProtonCheat: function(cheatTools, ignoreGeProton){
+            const ignoreGe = ignoreGeProton || false;
+            if(!ignoreGe){
+                if(!this.currentGeProton.name){
+                    this.$message.warning('请先选择兼容层');
+                    return;
+                }
+                if(!this.currentGeProton.version){
+                    this.$message.warning('兼容层未打补丁');
+                    return;
+                }
+                if(this.currentGeProton.version === '1.0.0'){
+                    this.$message.warning('兼容层补丁版本太低，请重新打补丁');
+                    return;
+                }
             }
             const cheatAppPath = (cheatTools == 'CheatEngine') ?  `${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}/CheatEngine/CheatEngine.exe` :
                 `${this.appSetting.user_home_path}/${STEAM_CONST.APP_WINDOWS_APP_PATH}/FLiNGTrainer/FLiNGTrainer.exe`;
@@ -547,6 +576,11 @@ new Vue({
             });
         },
         onChangeGeProtonGame:function() {
+            if(!this.currentGeProton.name){
+                this.$message.warning('请先选择兼容层');
+                this.geGameOptionValue = '';
+                return;
+            }
             this.readGeProtonGameConf();
         },
         onSystemToolsDownload(index, row){
@@ -918,6 +952,60 @@ new Vue({
                 console.error(e);
             });
         },
+        onBeforeFileSelectorOpen(){
+            // 初始化fileSelector实例
+            this.fileSelectorValue = '';
+            this.fileSelectorFe = fileSelectorInit(this.appSetting.user_home_path, (fe, eventName, data)=>{
+                if(eventName === 'onrefresh'){
+                    const path = data.GetPathIDs().join('/');
+                    commandRequest('GAME_SETTING', 'ioCtl', {
+                        ctl: 'list',
+                        src: path
+                    }).then((resp)=>{
+                        if(apiErrorAndReturn(this, resp)){
+                            return;
+                        }
+                        let fileList = resp.data.data.result || [];
+                        fileList = fileList.map(v=>{
+                            return {
+                                name: v.name,
+                                id: v.name,
+                                hash: v.name,
+                                type: (v.dir === 1 || v.symlink === 1) ? 'folder' : 'file',
+                            }
+                        });
+                        // console.log(fileList);
+                        if(fe.IsMappedFolder(data)){
+                            data.SetEntries(fileList);
+                        }
+                    }).catch((e)=>{
+                        console.error(e);
+                        this.$message.error(e.message);
+                    });
+                }
+                if(eventName === 'onfocus'){
+                    if(data.entryType === 'file' && data.entryId){
+                        console.log(`select file: ${data.filePath}`);
+                        this.fileSelectorValue = data.filePath;
+                    }
+                }
+            });
+        },
+        onConfirmFileChoice(confirm){
+          if(!confirm){
+              this.fileSelectorValue = '';
+          }
+          this.fileSelectorDialogVisible = false;
+        },
+        onFileSelectorClose(){
+            console.log('onFileSelectorClose');
+            // this.onConfirmFileChoice(false);
+            this.fileSelectorDialogVisible = false;
+            if(this.fileSelectorFe != null){
+                this.fileSelectorFe.Destroy();
+                this.fileSelectorFe = null;
+            }
+        },
         onChangeWindows:function () {
             if(this.main_windows === '1'){
                 commandRequest('GAME_SETTING', 'gameList', {}).then((resp)=>{
@@ -936,13 +1024,39 @@ new Vue({
                             diskC_Path: '.local/share/Steam/steamapps/compatdata/' + id + '/pfx/drive_c',
                         }
                     });
+                    // console.log(JSON.stringify(gameList));
                     this.gameList = gameList;
                 }).catch((e)=>{
                     console.error(e);
                     this.$message.error(e.message);
                 })
             }
-            else if(this.main_windows === '2'){
+            if(this.main_windows === '2'){
+                commandRequest('GAME_SETTING', 'gameListAll', {}).then((resp)=>{
+                    if(apiErrorAndReturn(this, resp)){
+                        return;
+                    }
+                    const result = resp.data.data.result;
+                    let gameList = result.map(v=>{
+                        // const id = v.substring(v.indexOf('(')+1, v.indexOf(')'));
+                        return {
+                            id: new String(v.id),
+                            name: v.name.replace('Non-Steam shortcut:', ''),
+                            nonSteam: v.name.indexOf('Non-Steam shortcut') >=0 ? 1 : 0,
+                            diskC_Path: '.local/share/Steam/steamapps/compatdata/' + v.id + '/pfx/drive_c',
+                        }
+                    });
+                    gameList = gameList.filter(v=> v.id!== 'null' && v.name.indexOf('Proton') < 0 && v.name.indexOf('Steam Linux Runtime') < 0 );
+                    // console.log(JSON.stringify(gameList));
+                    this.gameListAll = gameList;
+                }).catch((e)=>{
+                    console.error(e);
+                    this.$message.error(e.message);
+                })
+            }
+            else if(this.main_windows === '3'){
+                this.$alert(`建议使用'多开exe(新版)'来实现功能, 该旧版功能可能在未来版本中移除.`);
+
                 this.geGameOptionValue = '';
                 commandRequest('PROTON_PATCH', 'geProtonList', {}).then((resp)=>{
                     if(apiErrorAndReturn(this, resp)){
@@ -972,7 +1086,7 @@ new Vue({
                     this.$message.error(e.message);
                 })
             }
-            else if(this.main_windows === '4'){
+            else if(this.main_windows === '5'){
                 this.onGetCacheFolder();
             }
 
@@ -987,7 +1101,6 @@ new Vue({
             if(apiErrorAndReturn(this, resp)){
                 return;
             }
-
             this.checkAppOnlineVersion();
         }).catch((e)=>{
             console.error(e);
@@ -1009,6 +1122,8 @@ new Vue({
             });
         }, 30000);
         this.onGetAppSetting();
+
+
     },
     created: function() {
         window.onload = function () {

@@ -4,12 +4,15 @@ import subprocess
 import tarfile
 import zipfile
 from os.path import join, getsize
+from pathlib import Path
 
 from ArchiveDecompression import ArchiveDecompression
 from CmdlineExecutor import CmdlineExecutor
 from app_const import APP_GE_PROTON_CONF_PATH, APP_PROGRAM_PATH, APP_DOWNLOADS_PATH, APP_WINDOWS_APP_PATH, \
-    PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE, APP_WINDOWS_CACHE_PATH
+    PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_CMD_PREFIX, INTERNAL_PROTONTRICKS_FORCE_USE, APP_WINDOWS_CACHE_PATH, \
+    APP_STEAM_CONFIG_BACKUP_PATH
 from dev_mock import WINDOWS_MOCK
+from steam import get_steam_lib_paths, get_steam_apps
 
 
 def get_user_homepath():
@@ -38,12 +41,12 @@ def runShellCommand(cmdline):
 
 
 def showNativeAlert(message):
-    cmd = "zenity  --warning --text=\"{}\"".format(message)
+    cmd = "zenity  --width=\"320\" --warning --text=\"{}\"".format(message)
     runShellCommand(cmd)
 
 # 显示对话框
 def showNativeConfirm(message):
-    cmd = "zenity  --question --text=\"{}\"".format(message)
+    cmd = "zenity  --width=\"320\" --question --text=\"{}\"".format(message)
     result = runShellCommand(cmd)
     return result['cmdCode']
 
@@ -96,6 +99,12 @@ def is_firefox_installed():
     result = os.popen(cmd).read()
     return result.strip() != "0"
 
+
+def is_default_browser_installed():
+    cmd = "xdg-settings get default-web-browser"
+    result = os.popen(cmd).read()
+    return result.strip() != ""
+
 def install_firefox_with_xterm():
     script_file_path = os.path.join(get_user_homepath(), APP_PROGRAM_PATH, "system_tools_script", "firefox_installer.sh")
     executor = CmdlineExecutor("")
@@ -114,6 +123,10 @@ def create_app_default_path():
         os.makedirs(get_user_homepath() + "/" + APP_WINDOWS_APP_PATH)
     if not os.path.exists(get_user_homepath() + "/" + APP_WINDOWS_CACHE_PATH):
         os.makedirs(get_user_homepath() + "/" + APP_WINDOWS_CACHE_PATH)
+    if not os.path.exists(get_user_homepath() + "/" + APP_STEAM_CONFIG_BACKUP_PATH + "/localconfig"):
+        os.makedirs(get_user_homepath() + "/" + APP_STEAM_CONFIG_BACKUP_PATH + "/localconfig")
+    if not os.path.exists(get_user_homepath() + "/" + APP_STEAM_CONFIG_BACKUP_PATH + "/shortcuts"):
+        os.makedirs(get_user_homepath() + "/" + APP_STEAM_CONFIG_BACKUP_PATH + "/shortcuts")
 
 
 def get_app_template_path():
@@ -176,3 +189,12 @@ def get_real_path(target_path):
 
     return target_path
 
+def get_steam_all_apps():
+    user_home_path = get_user_homepath()
+    steam_path = Path(user_home_path + "/" + ".local/share/Steam")
+    steam_lib_paths = get_steam_lib_paths(steam_path)
+    # Find all Steam apps
+    return get_steam_apps(
+        steam_root=steam_path, steam_path=steam_path,
+        steam_lib_paths=steam_lib_paths
+    )
