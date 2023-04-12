@@ -34,8 +34,8 @@ RUN_EXPLORER_CMDLINE = " -c 'wine explorer.exe' {}"
 
 RUN_NATIVE_FILE_SELECTOR = "FILE=`zenity --file-selection --title=\"选择文件\"` && echo \"select file:$FILE\""
 
-LAUNCH_OPTIONS_EXTRA_EXE = "PROTON_REMOTE_DEBUG_CMD=\"{}\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"{}\" %command%"
-LAUNCH_OPTIONS_TASKMGR = "LANG=zh_CN.utf8 PROTON_REMOTE_DEBUG_CMD=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/taskmgr.exe\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/taskmgr.exe\" %command%"
+LAUNCH_OPTIONS_EXTRA_EXE = "PROTON_REMOTE_DEBUG_CMD=\"{}\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c:{}\" %command%"
+LAUNCH_OPTIONS_TASKMGR = "LANG=zh_CN.utf8 PROTON_REMOTE_DEBUG_CMD=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c/windows/system32/taskmgr.exe\" PRESSURE_VESSEL_FILESYSTEMS_RW=\"$STEAM_COMPAT_DATA_PATH/pfx/drive_c\" %command%"
 
 RUN_MAKE_GE_PROTON_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s patch {}"
 RUN_MAKE_GE_PROTON_REVERT_PATCH_CMDLINE = "curl -s https://gitee.com/cabbage-v50-steamdeck/ge-proton-patch/raw/feature-v1.1.0/extra_exe_patch.sh  | bash -s revert {}"
@@ -464,7 +464,7 @@ class CmdHandler(object):
             if originJson.__contains__('WINE_EXTRA_EXE') and originJson['WINE_EXTRA_EXE'] != '':
                 app = CabbageSteamApp(self.params['gameId'] + '')
                 app.writeVdfValue('LaunchOptions', LAUNCH_OPTIONS_EXTRA_EXE.format(originJson['WINE_EXTRA_EXE'],
-                                                                                   originJson['WINE_EXTRA_EXE']))
+                                                                                   os.path.dirname(originJson['WINE_EXTRA_EXE'])))
             # 设置了开启任务管理器
             elif originJson.__contains__('WINE_TASKMGR') and originJson['WINE_TASKMGR'] == '1':
                 app = CabbageSteamApp(self.params['gameId'] + '')
