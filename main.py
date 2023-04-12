@@ -6,16 +6,19 @@ from threading import Thread
 
 from CmdHandler import CmdHandler
 from bottle import request, response, route, post, run, template, static_file, WSGIRefServer
-# toolkit数据目录定义
 from util import create_app_default_path, get_app_template_path, get_system_folder_opener, runShellCommand, \
     showNativeAlert, is_firefox_installed, showNativeConfirm, install_firefox_with_xterm
 
 api_ticket = LifoQueue()
 plat = platform.system().lower()
 
+# toolkit数据目录定义
 """
 $HOME/.cabbage_toolkit
                 |-- app.conf  # app 配置
+                |-- steam_conf_backup  # 兼容层游戏配置
+                |   |__localconfig
+                |   |__shortcuts
                 |-- ge_proton_conf  # 兼容层游戏配置
                 |   `-- 240.conf   # 以gameId命名
                 `-- program

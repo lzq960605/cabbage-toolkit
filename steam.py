@@ -263,7 +263,7 @@ class SteamApp(object):
         # Use case-insensitive field names to deal with these.
         app_state = lower_dict(app_state)
         appid = int(app_state["appid"])
-        print("steam game:{} vdf_data = {}".format(appid, app_state))
+        # print("steam game:{} vdf_data = {}".format(appid, app_state))
 
         try:
             name = app_state["name"]
@@ -1147,12 +1147,12 @@ def get_custom_windows_shortcuts(steam_path):
         return []
 
     steam_apps = []
-    print("vdf shortcuts = {}".format(vdf_data))
+    # print("vdf shortcuts = {}".format(vdf_data))
 
     for shortcut_id, shortcut_data in vdf_data["shortcuts"].items():
         # The "exe" field can also be "Exe". Account for this by making
         # all field names lowercase
-        print("\n shortcut_id = {}, shortcut_data = {}".format(int(shortcut_id), shortcut_data))
+        # print("\n shortcut_id = {}, shortcut_data = {}".format(int(shortcut_id), shortcut_data))
         shortcut_data = lower_dict(shortcut_data)
         origin_shortcut_data = origin_vdf_data["shortcuts"][shortcut_id]
         shortcut_id = int(shortcut_id)

@@ -5,8 +5,14 @@ APP_CODE_REPOSITORY="https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git
 
 main_func(){
   if [[ -d "${APP_HOME}/program" ]];then
-    echo "Found cabbage_toolkit installed, if you to reinstall it, please delete the folder at: ${APP_HOME}/program"
-    exit 0
+    # echo "Found cabbage_toolkit installed, if you to reinstall it, please delete the folder at: ${APP_HOME}/program"
+    # exit 0
+    zenity  --question --text="检测到之前已安装过大白菜工具箱, 是否重新安装?"
+    result="$?"
+    if [[ "${result}" != "0" ]];then
+     exit 0
+    fi
+    rm -rf "${APP_HOME}/program"
   fi
   mkdir -p "${APP_HOME}/program"
   git clone ${APP_CODE_REPOSITORY} "${APP_HOME}/program"

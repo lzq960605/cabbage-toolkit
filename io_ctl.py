@@ -10,14 +10,14 @@ def io_ctl_file_exist(path):
 
 
 def io_ctl_copy(src, dst):
-    if not os.path.exists(dst):
-        os.makedirs(dst)
+    if not os.path.exists(os.path.dirname(dst)):
+        os.makedirs(os.path.dirname(dst))
     shutil.copy(src, dst)
 
 
 def io_ctl_move(src, dst):
-    if not os.path.exists(dst):
-        os.makedirs(dst)
+    if not os.path.exists(os.path.dirname(dst)):
+        os.makedirs(os.path.dirname(dst))
     shutil.move(src, dst)
 
 

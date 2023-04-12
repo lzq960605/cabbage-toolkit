@@ -6,6 +6,7 @@ APP_PROGRAM_PATH = ".cabbage_toolkit/program"
 APP_DOWNLOADS_PATH = ".cabbage_toolkit/downloads"
 APP_WINDOWS_APP_PATH = ".cabbage_toolkit/windows_app"
 APP_WINDOWS_CACHE_PATH = ".cabbage_toolkit/cache"
+APP_STEAM_CONFIG_BACKUP_PATH = ".cabbage_toolkit/steam_conf_backup"
 INTERNAL_PROTONTRICKS_FORCE_USE = 0
 PROTONTRICKS_CMD_PREFIX = "flatpak run com.github.Matoking.protontricks"
 INTERNAL_PROTONTRICKS_CMD_PREFIX = "python3 {}/tools/protontricks/main.py"
