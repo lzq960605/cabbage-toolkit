@@ -18,6 +18,7 @@ main_func(){
   git clone ${APP_CODE_REPOSITORY} "${APP_HOME}/program"
   cp -f "${APP_HOME}/program/install/cabbage.desktop" "${HOME}/Desktop/大白菜工具箱.desktop"
   echo "install ok!"
+  zenity --info --text="安装完成, 请在桌面点击'大白菜工具箱'图标, 信任该应用来启动"
 }
 
 main_func

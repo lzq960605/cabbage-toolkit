@@ -1,3 +1,5 @@
+# 该文件的源码来自protontricks下的steam.py, 在SteamApp类增加了vdf配置的相关信息.
+
 STEAM_COMPAT_TOOL_PATH=".local/share/Steam/compatibilitytools.d"
 STEAM_APPMANIFEST_PATH=".local/share/Steam/steamapps"
 STEAM_APP_PATH=".local/share/Steam/steamapps/common"
