@@ -497,7 +497,7 @@ class CmdHandler(object):
 
     # 强制退出steam客户端
     def killSteamAppClient(self):
-        cmd = "ps -ef | grep -E '(steam.sh$|steam$)' | grep -v grep | awk '{print $2}' | wc -l"
+        cmd = "ps -ef | grep -E '(steam \-steamdeck|steam.sh \-steamdeck)' | grep -v grep | awk '{print $2}' | wc -l"
         result = os.popen(cmd).read()
         # steam客户端进程未启动
         if result.strip() == "0":
@@ -507,6 +507,6 @@ class CmdHandler(object):
                 "errMsg": "",
             }
 
-        command = "ps -ef | grep -E '(steam.sh$|steam$)' | grep -v grep | awk '{print $2}' | xargs kill -9"
+        command = "ps -ef | grep -E '(steam \-steamdeck|steam.sh \-steamdeck)' | grep -v grep | awk '{print $2}' | xargs kill -9"
         return runShellCommand(command)
 
