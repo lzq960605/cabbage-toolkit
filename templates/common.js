@@ -78,3 +78,115 @@ function parseCacheInfoToJson(cacheInfo) {
         compatdataWithoutInstalled: compatdataWithoutInstalled.sort((a,b)=>b.size - a.size),
     }
 }
+
+function fileSelectorInit(userHomePath, eventHandler) {
+    let currentFolder = '';
+    // Handle iframe demo embed.
+    // if (window.location.href.indexOf('embed=true') > -1)  document.documentElement.classList.add('embed');
+    if (false)  document.documentElement.classList.add('embed');
+    // Back to regularly scheduled program.
+    var elem = document.getElementById('filemanager');
+    if(!elem){
+        console.error('element filemanager not found!');
+        return;
+    }
+    var options = {
+        // This allows drag-and-drop and cut/copy/paste to work between windows of the live demo.
+        // Your application should either define the group uniquely for your application or not at all.
+        group: 'demo_test_group',
+        capturebrowser: true,
+        initpath: [
+            [ userHomePath ? userHomePath : '/home/deck', 'HOME', { canmodify: false } ]
+        ],
+        onfocus: function(e) {
+            if(typeof eventHandler === 'function'){
+                const info = {
+                    filePath: currentFolder + '/' + e.target.getAttribute('entry_id'),
+                    entryId: e.target.getAttribute('entry_id'),
+                    entryType: e.target.getAttribute('entry_type'),
+                };
+                eventHandler(this, 'onfocus', info); // 文件选中事件
+            }
+            // console.log('focus target:' + e.target.getAttribute('entry_id') + ' type:' + e.target.getAttribute('entry_type'));
+            // console.log(e);
+        },
+        onblur: function(e) {
+        },
+        // See main documentation for the complete list of keys.
+        // The only tool that won't show as a result of a handler being defined is 'item_checkboxes'.
+        tools: {
+            item_checkboxes: true
+        },
+        onrefresh: function(folder, required) {
+            // this.GetCurrentFolder()
+            currentFolder = folder.GetPathIDs().join('/');
+            if(typeof eventHandler === 'function'){
+                eventHandler(this, 'onrefresh', folder); // 目录刷新事件
+            }
+        },
+        onrename: function(renamed, folder, entry, newname) {
+        },
+        onopenfile: function(folder, entry) {
+        },
+        onnewfolder: function(created, folder) {
+        },
+        onnewfile: function(created, folder) {
+        },
+        oninitupload: function(startupload, fileinfo) {
+        },
+        // Optional upload handler function to finalize an uploaded file on a server (e.g. move from a temporary directory to the final location).
+        onfinishedupload: function(finalize, fileinfo) {
+        },
+        // Optional upload handler function to receive permanent error notifications.
+        onuploaderror: function(fileinfo, e) {
+        },
+        oninitdownload: function(startdownload, folder, ids, entries) {
+        },
+        ondownloadstarted: function(options) {
+        },
+        ondownloaderror: function(options) {
+        },
+        // Calculated information must be fully synchronous (i.e. no AJAX calls).  Chromium only.
+        ondownloadurl: function(result, folder, ids, entry) {
+        },
+        oncopy: function(copied, srcpath, srcids, destfolder) {
+        },
+        onmove: function(moved, srcpath, srcids, destfolder) {
+        },
+        ondelete: function(deleted, folder, ids, entries, recycle) {
+        },
+    };
+    return new window.FileExplorer(elem, options);
+}
+
+const FILE_SELECTOR_USE = 'HTML'; // LINUX_WDG_OPEN, HTML
+function openFileSelector(vue, choiceFileCb) {
+    // 先选择exe, 再打开
+    if(FILE_SELECTOR_USE === 'LINUX_WDG_OPEN'){
+        commandRequest('GAME_SETTING', 'openFileSelector', {}).then((resp)=>{
+            if(apiErrorAndReturn(vue, resp, true)){
+                return;
+            }
+            let path = resp.data.data.result;
+            path = path.indexOf('select file:') >= 0 ? path.split('select file:')[1] : '';
+            if(typeof choiceFileCb === 'function'){
+                choiceFileCb(path, '');
+            }
+        }).catch((e)=>{
+            console.error(e);
+            vue.$message.error(e.message);
+        });
+    }
+    else if(FILE_SELECTOR_USE === 'HTML'){
+        vue.fileSelectorDialogVisible = true;
+        const t = setInterval(()=>{
+            // 轮询对话框关闭
+            if(vue.fileSelectorDialogVisible === false){
+                clearInterval(t);
+                if(typeof choiceFileCb === 'function'){
+                    choiceFileCb(vue.fileSelectorValue, ''); // 参数1: 文件地址; 参数2: 文件类型
+                }
+            }
+        }, 500)
+    }
+}
