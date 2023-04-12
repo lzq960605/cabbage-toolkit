@@ -41,12 +41,12 @@ def runShellCommand(cmdline):
 
 
 def showNativeAlert(message):
-    cmd = "zenity  --warning --text=\"{}\"".format(message)
+    cmd = "zenity  --width=\"320\" --warning --text=\"{}\"".format(message)
     runShellCommand(cmd)
 
 # 显示对话框
 def showNativeConfirm(message):
-    cmd = "zenity  --question --text=\"{}\"".format(message)
+    cmd = "zenity  --width=\"320\" --question --text=\"{}\"".format(message)
     result = runShellCommand(cmd)
     return result['cmdCode']
 
