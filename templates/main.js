@@ -1055,6 +1055,8 @@ new Vue({
                 })
             }
             else if(this.main_windows === '3'){
+                this.$alert(`建议使用'多开exe(新版)'来实现功能, 该旧版功能可能在未来版本中移除.`);
+
                 this.geGameOptionValue = '';
                 commandRequest('PROTON_PATCH', 'geProtonList', {}).then((resp)=>{
                     if(apiErrorAndReturn(this, resp)){
