@@ -600,6 +600,10 @@ new Vue({
                 }
                 let fileList = resp.data.data.result || [];
                 console.log(`fileList: ${JSON.stringify(fileList)}`)
+                fileList = fileList.map(v=>{
+                    return v.name;
+                });
+
                 fileList = fileList.filter(v=>v.indexOf(row.key) >= 0); // 利用key搜索
                 fileList = fileList.filter(v=>{
                     return ARCHIVE_FILE_SUFFIX.some(vv=>v.endsWith(vv));// 后缀名要满足

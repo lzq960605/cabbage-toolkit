@@ -16,7 +16,7 @@ class CabbageSteamApp(object):
 
     def writeVdfValue(self, key, value):
         if not self.app.shortcut_data.__contains__(key):
-            raise Exception(" app:{} shortcut_data not contain:{}".format(self.appid, key))
+            raise Exception(" app:{} shortcut_data not contain:{}, file:{}\n 尝试修改该游戏属性的'启动选项'失败, 请反馈该问题".format(self.appid, key, self.app.shortcuts_path))
         if not os.path.exists(self.app.shortcuts_path):
             raise Exception(" app:{} shortcuts_path:{} not exist".format(self.appid, self.app.shortcuts_path))
 
