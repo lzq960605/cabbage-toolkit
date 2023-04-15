@@ -1,5 +1,5 @@
 # the app const
-APP_VERSION = "1.3.2"
+APP_VERSION = "1.3.3"
 APP_HOME_PATH = ".cabbage_toolkit"
 APP_GE_PROTON_CONF_PATH = ".cabbage_toolkit/ge_proton_conf"
 APP_PROGRAM_PATH = ".cabbage_toolkit/program"
