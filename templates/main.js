@@ -72,6 +72,7 @@ new Vue({
                     "install_protontricks": "https://www.bilibili.com/video/cv21084708/"
                 },
                 "user_home_path": "/home/deck",
+                "system_root_path": "/",
                 "necessary_tools": [],
                 "windows_app": [],
             },
@@ -959,7 +960,7 @@ new Vue({
         onBeforeFileSelectorOpen(){
             // 初始化fileSelector实例
             this.fileSelectorValue = '';
-            this.fileSelectorFe = fileSelectorInit(this.appSetting.user_home_path, (fe, eventName, data)=>{
+            this.fileSelectorFe = fileSelectorInit(this.appSetting.user_home_path, this.appSetting.system_root_path, (fe, eventName, data)=>{
                 if(eventName === 'onrefresh'){
                     const path = data.GetPathIDs().join('/');
                     commandRequest('GAME_SETTING', 'ioCtl', {

@@ -79,7 +79,7 @@ function parseCacheInfoToJson(cacheInfo) {
     }
 }
 
-function fileSelectorInit(userHomePath, eventHandler) {
+function fileSelectorInit(userHomePath, rootPath, eventHandler) {
     let currentFolder = '';
     // Handle iframe demo embed.
     // if (window.location.href.indexOf('embed=true') > -1)  document.documentElement.classList.add('embed');
@@ -96,7 +96,7 @@ function fileSelectorInit(userHomePath, eventHandler) {
         group: 'demo_test_group',
         capturebrowser: true,
         initpath: [
-            [ userHomePath ? userHomePath : '/home/deck', 'HOME', { canmodify: false } ]
+            [ rootPath ? rootPath : '/', '根目录(/)', { canmodify: false } ],
         ],
         onfocus: function(e) {
             if(typeof eventHandler === 'function'){
@@ -120,6 +120,7 @@ function fileSelectorInit(userHomePath, eventHandler) {
         onrefresh: function(folder, required) {
             // this.GetCurrentFolder()
             currentFolder = folder.GetPathIDs().join('/');
+            currentFolder = currentFolder.startsWith('//') ? (currentFolder.replace('//', '/')) : (currentFolder);
             if(typeof eventHandler === 'function'){
                 eventHandler(this, 'onrefresh', folder); // 目录刷新事件
             }
@@ -156,7 +157,12 @@ function fileSelectorInit(userHomePath, eventHandler) {
         ondelete: function(deleted, folder, ids, entries, recycle) {
         },
     };
-    return new window.FileExplorer(elem, options);
+    const fe = new window.FileExplorer(elem, options);
+    const userInitPath = [
+        [ userHomePath ? userHomePath : '/home/deck', 'HOME', { canmodify: false } ],
+    ];
+    fe.SetPath(userInitPath);
+    return fe;
 }
 
 const FILE_SELECTOR_USE = 'HTML'; // LINUX_WDG_OPEN, HTML

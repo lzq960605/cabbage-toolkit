@@ -17,7 +17,7 @@ from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_
     io_ctl_decompression_to_with_system, io_ctl_du_path, io_ctl_del_multiple
 from steam import STEAM_COMPAT_TOOL_PATH, STEAM_APP_SHADERCACHE_PATH, STEAM_APP_COMPAT_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
-    launch_subprocess_cmd, get_protontricks_provider, get_steam_all_apps
+    launch_subprocess_cmd, get_protontricks_provider, get_steam_all_apps, get_system_rootpath
 
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
@@ -399,6 +399,7 @@ class CmdHandler(object):
         content_dict = json.loads(content)
         content_dict['version'] = APP_VERSION
         content_dict['user_home_path'] = get_user_homepath()
+        content_dict['system_root_path'] = get_system_rootpath()
         dict_data['result'] = json.dumps(content_dict)
         return dict_data
 

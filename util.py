@@ -22,6 +22,12 @@ def get_user_homepath():
     elif plat == 'linux':
         return os.environ.get("HOME", "")
 
+def get_system_rootpath():
+    plat = platform.system().lower()
+    if plat == 'windows':
+        return os.environ['HOMEDRIVE'] + ""
+    elif plat == 'linux':
+        return "/"
 
 def byte_decode(byte_str):
     plat = platform.system().lower()
