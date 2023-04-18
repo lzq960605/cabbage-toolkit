@@ -204,3 +204,17 @@ def get_steam_all_apps():
         steam_root=steam_path, steam_path=steam_path,
         steam_lib_paths=steam_lib_paths
     )
+
+    # text = 'OTHER_CMD_XXXX PROTON_REMOTE_DEBUG_CMD="{}" PRESSURE_VESSEL_FILESYSTEMS_RW="$STEAM_COMPAT_DATA_PATH/pfx/drive_c:{}" %command%'
+def get_steam_command_without_remote_debug(text):
+    import re
+    # 定义正则表达式
+    pattern = r'PROTON_REMOTE_DEBUG_CMD=".*?"\s+PRESSURE_VESSEL_FILESYSTEMS_RW=".*?"\s+'
+    # 使用sub方法替换匹配的内容为空字符串
+    result = re.sub(pattern, '', text)
+    # 去掉所有的 %command%
+    result = re.sub(r'%command%', '', result)
+    # 将连续多个空格替换成一个空格
+    result = re.sub(r'\s+', ' ', result)
+    # 返回结果
+    return result

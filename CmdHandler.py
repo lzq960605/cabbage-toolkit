@@ -17,7 +17,8 @@ from io_ctl import io_ctl_file_exist, io_ctl_list, io_ctl_copy, io_ctl_move, io_
     io_ctl_decompression_to_with_system, io_ctl_du_path, io_ctl_del_multiple
 from steam import STEAM_COMPAT_TOOL_PATH, STEAM_APP_SHADERCACHE_PATH, STEAM_APP_COMPAT_PATH
 from util import is_protontricks_installed, get_system_folder_opener, runShellCommand, get_user_homepath, \
-    launch_subprocess_cmd, get_protontricks_provider, get_steam_all_apps, get_system_rootpath
+    launch_subprocess_cmd, get_protontricks_provider, get_steam_all_apps, get_system_rootpath, \
+    get_steam_command_without_remote_debug
 
 # eg: protontricks -c 'wine Z:\\\\home\\deck\\your.exe' gameId
 RUN_EXE_CMDLINE = " -c 'wine {}' {}"
@@ -464,16 +465,38 @@ class CmdHandler(object):
             # 设置附加exe(优先级最高)
             if originJson.__contains__('WINE_EXTRA_EXE') and originJson['WINE_EXTRA_EXE'] != '':
                 app = CabbageSteamApp(self.params['gameId'] + '')
-                app.writeVdfValue('LaunchOptions', LAUNCH_OPTIONS_EXTRA_EXE.format(originJson['WINE_EXTRA_EXE'],
+                launchOptionPrev = app.readVdfValue('LaunchOptions')
+                if launchOptionPrev is not None:
+                    launchOptionPrev = get_steam_command_without_remote_debug(launchOptionPrev) + " "
+                else:
+                    launchOptionPrev=""
+                app.writeVdfValue('LaunchOptions', launchOptionPrev + LAUNCH_OPTIONS_EXTRA_EXE.format(originJson['WINE_EXTRA_EXE'],
                                                                                    os.path.dirname(originJson['WINE_EXTRA_EXE'])))
             # 设置了开启任务管理器
             elif originJson.__contains__('WINE_TASKMGR') and originJson['WINE_TASKMGR'] == '1':
                 app = CabbageSteamApp(self.params['gameId'] + '')
-                app.writeVdfValue('LaunchOptions', LAUNCH_OPTIONS_TASKMGR)
-            # 清空启动参数
+                launchOptionPrev = app.readVdfValue('LaunchOptions')
+                if launchOptionPrev is not None:
+                    launchOptionPrev = get_steam_command_without_remote_debug(launchOptionPrev) + " "
+                else:
+                    launchOptionPrev=""
+                launchOptionPrev = re.sub(r'LANG=zh_CN.utf8', '', launchOptionPrev)
+                app.writeVdfValue('LaunchOptions', launchOptionPrev + LAUNCH_OPTIONS_TASKMGR)
+            # 清空多开exe相关的启动参数
             else:
                 app = CabbageSteamApp(self.params['gameId'] + '')
-                app.writeVdfValue('LaunchOptions', "")
+                launchOptionPrev = app.readVdfValue('LaunchOptions')
+                if launchOptionPrev is not None:
+                    launchOptionPrev = get_steam_command_without_remote_debug(launchOptionPrev) + " "
+                else:
+                    launchOptionPrev=""
+                launchOptionPrev = re.sub(r'LANG=zh_CN.utf8', '', launchOptionPrev)
+                # 若用户自己设置了启动命令，简单地在后面加上 %command%, 可能不能处理所有情况
+                if launchOptionPrev.strip() == "":
+                    launchOptionPrev = ""
+                else:
+                    launchOptionPrev += " %command%"
+                app.writeVdfValue('LaunchOptions', launchOptionPrev)
 
         return {
             "cmdCode": 0,
