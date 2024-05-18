@@ -123,11 +123,6 @@ if __name__ == '__main__':
         else:
             showNativeAlert("你可在discover商店上搜索并安装firefox浏览器，安装后重新打开应用")
 
-        exit(0)
-    if plat == 'linux' and os.environ.get("LANGUAGE", "").startswith("zh_"):
-        showNativeAlert("该程序仅支持英文steamos系统，检测到您所使用的steamos系统安装了汉化补丁，请在语言选项中改为英文")
-        exit(0)
-
 
     Thread(target=open_browser_with_url).start()
     run(server=server)
