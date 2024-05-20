@@ -21,7 +21,8 @@
 
 1.  在konsole等终端应用中执行以下代码
 ```bash
-curl -s https://github.com/lzq960605/cabbage-toolkit/blob/master/install/cmdline_installer.sh | bash
+curl -s https://raw.githubusercontent.com/lzq960605/cabbage-toolkit/master/install/cmdline_installer.sh | bash
+
 ```
 之后会创建一个大白菜工具箱的桌面应用
 
