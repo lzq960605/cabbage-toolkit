@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 APP_HOME="${HOME}/.cabbage_toolkit"
-APP_CODE_REPOSITORY="https://gitee.com/cabbage-v50-steamdeck/cabbage-toolkit.git"
+APP_CODE_REPOSITORY="https://github.com/lzq960605/cabbage-toolkit/"
 
 main_func(){
   if [[ -d "${APP_HOME}/program" ]];then
