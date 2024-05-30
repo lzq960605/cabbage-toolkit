@@ -1,5 +1,7 @@
 # cabbage-toolkit
 
+以去除系统语言限制
+
 #### 介绍
 这个一个主要在steamdeck上使用的工具集合，该软件封装了protontricks使用与GE-Proton打exe补丁的工具集合软件，提供友好，汉化的用户界面
 
@@ -27,8 +29,6 @@ curl -s https://raw.githubusercontent.com/lzq960605/cabbage-toolkit/master/insta
 之后会创建一个大白菜工具箱的桌面应用
 
 
-
-#### 功能介绍
 
 1.  给游戏打补丁，windows的常用功能
 2.  给兼容层打多开exe补丁。
